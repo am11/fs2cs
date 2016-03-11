@@ -15,13 +15,7 @@ module Library =
   open Microsoft.FSharp.Compiler
   open Microsoft.FSharp.Compiler.Ast
   open Microsoft.FSharp.Compiler.SourceCodeServices
-  open Util
-
-  /// Returns 42
-  ///
-  /// ## Parameters
-  ///  - `num` - whatever
-  let hello num = 42
+  open Fable
 
   let readOptions argv =
     let def opts key defArg f =
@@ -96,6 +90,7 @@ module Library =
   let compile com checker projCode fileMask =
     try
         parseFSharpProject com checker projCode
+        |> FSharp2Fable.Compiler.transformFiles com fileMask
     with ex ->
         failwith ex.Message
 

@@ -1,149 +1,146 @@
-﻿namespace fs2cs
+﻿namespace Fable
 
-module Util=
+type CompilerOptions = {
+        code: string
+        projFile: string
+        symbols: string[]
+        plugins: string[]
+        outDir: string
+        lib: string
+        watch: bool
+    }
+    
+type CompilerError(msg) =
+    member x.``type`` = "Error"
+    member x.message: string = msg
 
-  type CompilerOptions = {
-          code: string
-          projFile: string
-          symbols: string[]
-          plugins: string[]
-          outDir: string
-          lib: string
-          watch: bool
-      }
-    
-  type CompilerError(msg) =
-      member x.``type`` = "Error"
-      member x.message: string = msg
+type IPlugin =
+    interface end
 
-  type IPlugin =
-      interface end
-
-  type ICompiler =
-      abstract Options: CompilerOptions
-      abstract Plugins: IPlugin list
+type ICompiler =
+    abstract Options: CompilerOptions
+    abstract Plugins: IPlugin list
     
-  module Naming =
-      open System
-      open System.IO
-      open System.Text.RegularExpressions
+module Naming =
+    open System
+    open System.IO
+    open System.Text.RegularExpressions
     
-      let (|StartsWith|_|) pattern (txt: string) =
-          if txt.StartsWith pattern then Some pattern else None
+    let (|StartsWith|_|) pattern (txt: string) =
+        if txt.StartsWith pattern then Some pattern else None
     
-      let knownInterfaces =
-          set [ "System.Object"; "System.IComparable"; "System.IDisposable";
-              "System.IObservable"; "System.IObserver"]
+    let knownInterfaces =
+        set [ "System.Object"; "System.IComparable"; "System.IDisposable";
+            "System.IObservable"; "System.IObserver"]
              
-      let automaticInterfaces =
-          set [ "System.IEquatable"; "System.Collections.IStructuralEquatable";
-              "System.IComparable"; "System.Collections.IStructuralComparable" ]
+    let automaticInterfaces =
+        set [ "System.IEquatable"; "System.Collections.IStructuralEquatable";
+            "System.IComparable"; "System.Collections.IStructuralComparable" ]
     
-      let ignoredCompilerGenerated =
-          set [ "CompareTo"; "Equals"; "GetHashCode" ]
+    let ignoredCompilerGenerated =
+        set [ "CompareTo"; "Equals"; "GetHashCode" ]
     
-      let removeParens, removeGetSetPrefix, sanitizeActivePattern =
-          let reg1 = Regex(@"^\( (.*) \)$")
-          let reg2 = Regex(@"^[gs]et_")
-          let reg3 = Regex(@"^\|[^\|]+?(?:\|[^\|]+)*(?:\|_)?\|$")
-          (fun s -> reg1.Replace(s, "$1")),
-          (fun s -> reg2.Replace(s, "")),
-          (fun (s: string) -> if reg3.IsMatch(s) then s.Replace("|", "$") else s)
+    let removeParens, removeGetSetPrefix, sanitizeActivePattern =
+        let reg1 = Regex(@"^\( (.*) \)$")
+        let reg2 = Regex(@"^[gs]et_")
+        let reg3 = Regex(@"^\|[^\|]+?(?:\|[^\|]+)*(?:\|_)?\|$")
+        (fun s -> reg1.Replace(s, "$1")),
+        (fun s -> reg2.Replace(s, "")),
+        (fun (s: string) -> if reg3.IsMatch(s) then s.Replace("|", "$") else s)
         
-      let lowerFirst (s: string) =
-          s.Substring 1 |> (+) (Char.ToLowerInvariant s.[0] |> string)
+    let lowerFirst (s: string) =
+        s.Substring 1 |> (+) (Char.ToLowerInvariant s.[0] |> string)
 
-      let getFieldIndex fieldName =
-          match Regex.Match(fieldName, @"\d+$") with
-          | m when m.Success -> int m.Value
-          | _ -> 0
+    let getFieldIndex fieldName =
+        match Regex.Match(fieldName, @"\d+$") with
+        | m when m.Success -> int m.Value
+        | _ -> 0
 
-      let normalizePath (path: string) =
-          path.Replace("\\", "/")
+    let normalizePath (path: string) =
+        path.Replace("\\", "/")
     
-      let getCoreLibPath (com: ICompiler) =
-          Path.Combine(com.Options.lib, "fable-core.js") |> normalizePath
+    let getCoreLibPath (com: ICompiler) =
+        Path.Combine(com.Options.lib, "fable-core.js") |> normalizePath
 
-      let fromLib (com: ICompiler) path =
-          Path.Combine(com.Options.lib, path) |> normalizePath
+    let fromLib (com: ICompiler) path =
+        Path.Combine(com.Options.lib, path) |> normalizePath
 
-      // TODO: Use $F for CoreLib?
-      let getImportModuleIdent i = sprintf "$M%i" (i+1)
+    // TODO: Use $F for CoreLib?
+    let getImportModuleIdent i = sprintf "$M%i" (i+1)
     
-      let identForbiddenChars =
-          Regex @"^[^a-zA-Z_$]|[^0-9a-zA-Z_$]"
+    let identForbiddenChars =
+        Regex @"^[^a-zA-Z_$]|[^0-9a-zA-Z_$]"
         
-      let trimDots (s: string) =
-          match s.StartsWith ".", s.EndsWith "." with
-          | true, true -> s.Substring(1, s.Length - 2)
-          | true, false -> s.Substring(1)
-          | false, true -> s.Substring(0, s.Length - 1)
-          | false, false -> s
+    let trimDots (s: string) =
+        match s.StartsWith ".", s.EndsWith "." with
+        | true, true -> s.Substring(1, s.Length - 2)
+        | true, false -> s.Substring(1)
+        | false, true -> s.Substring(0, s.Length - 1)
+        | false, false -> s
 
-      // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#Keywords
-      let jsKeywords =
-          set["abstract"; "await"; "boolean"; "break"; "byte"; "case"; "catch"; "char"; "class"; "const"; "continue"; "debugger"; "default"; "delete"; "do"; "double";
-              "else"; "enum"; "export"; "extends"; "false"; "final"; "finally"; "float"; "for"; "function"; "goto"; "if"; "implements"; "import"; "in"; "instanceof"; "int"; "interface";
-              "let"; "long"; "native"; "new"; "null"; "package"; "private"; "protected"; "public"; "return"; "self"; "short"; "static"; "super"; "switch"; "synchronized";
-              "this"; "throw"; "throws"; "transient"; "true"; "try"; "typeof"; "undefined"; "var"; "void"; "volatile"; "while"; "with"; "yield" ]
+    // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#Keywords
+    let jsKeywords =
+        set["abstract"; "await"; "boolean"; "break"; "byte"; "case"; "catch"; "char"; "class"; "const"; "continue"; "debugger"; "default"; "delete"; "do"; "double";
+            "else"; "enum"; "export"; "extends"; "false"; "final"; "finally"; "float"; "for"; "function"; "goto"; "if"; "implements"; "import"; "in"; "instanceof"; "int"; "interface";
+            "let"; "long"; "native"; "new"; "null"; "package"; "private"; "protected"; "public"; "return"; "self"; "short"; "static"; "super"; "switch"; "synchronized";
+            "this"; "throw"; "throws"; "transient"; "true"; "try"; "typeof"; "undefined"; "var"; "void"; "volatile"; "while"; "with"; "yield" ]
         
-      let sanitizeIdent conflicts name =
-          let preventConflicts conflicts name =
-              let rec check n =
-                  let name = if n > 0 then sprintf "%s_%i" name n else name
-                  if not (conflicts name) then name else check (n+1)
-              check 0
-          // Replace Forbidden Chars
-          let sanitizedName =
-              identForbiddenChars.Replace(removeParens name, "_")
-          // Check if it's a keyword
-          jsKeywords.Contains sanitizedName
-          |> function true -> "_" + sanitizedName | false -> sanitizedName
-          // Check if it already exists in scope
-          |> preventConflicts conflicts
+    let sanitizeIdent conflicts name =
+        let preventConflicts conflicts name =
+            let rec check n =
+                let name = if n > 0 then sprintf "%s_%i" name n else name
+                if not (conflicts name) then name else check (n+1)
+            check 0
+        // Replace Forbidden Chars
+        let sanitizedName =
+            identForbiddenChars.Replace(removeParens name, "_")
+        // Check if it's a keyword
+        jsKeywords.Contains sanitizedName
+        |> function true -> "_" + sanitizedName | false -> sanitizedName
+        // Check if it already exists in scope
+        |> preventConflicts conflicts
         
-      let getQueryParams (txt: string) =
-          match txt.IndexOf("?") with
-          | -1 -> txt, Map.empty<_,_>
-          | i ->
-              txt.Substring(i + 1).Split('&')
-              |> Seq.choose (fun pair ->
-                  match pair.Split('=') with
-                  | [|key;value|] -> Some (key,value)
-                  | _ -> None)
-              |> fun args -> txt.Substring(0, i), Map(args)
+    let getQueryParams (txt: string) =
+        match txt.IndexOf("?") with
+        | -1 -> txt, Map.empty<_,_>
+        | i ->
+            txt.Substring(i + 1).Split('&')
+            |> Seq.choose (fun pair ->
+                match pair.Split('=') with
+                | [|key;value|] -> Some (key,value)
+                | _ -> None)
+            |> fun args -> txt.Substring(0, i), Map(args)
 
-      /// Creates a relative path from one file or folder to another.
-      /// from http://stackoverflow.com/a/340454/3922220
-      let getRelativePath toPath fromPath =
-          let fromUri = Uri(fromPath)
-          let toUri = Uri(toPath)
-          if fromUri.Scheme <> toUri.Scheme then
-              toPath   // path can't be made relative.
-          else
-              let relativeUri = fromUri.MakeRelativeUri(toUri)
-              let relativePath = Uri.UnescapeDataString(relativeUri.ToString())
-              match toUri.Scheme.ToUpperInvariant() with
-              | "FILE" -> relativePath.Replace(
-                              IO.Path.AltDirectorySeparatorChar,
-                              IO.Path.DirectorySeparatorChar)  |> normalizePath
-              | _ -> relativePath |> normalizePath
+    /// Creates a relative path from one file or folder to another.
+    /// from http://stackoverflow.com/a/340454/3922220
+    let getRelativePath toPath fromPath =
+        let fromUri = Uri(fromPath)
+        let toUri = Uri(toPath)
+        if fromUri.Scheme <> toUri.Scheme then
+            toPath   // path can't be made relative.
+        else
+            let relativeUri = fromUri.MakeRelativeUri(toUri)
+            let relativePath = Uri.UnescapeDataString(relativeUri.ToString())
+            match toUri.Scheme.ToUpperInvariant() with
+            | "FILE" -> relativePath.Replace(
+                            IO.Path.AltDirectorySeparatorChar,
+                            IO.Path.DirectorySeparatorChar)  |> normalizePath
+            | _ -> relativePath |> normalizePath
             
-      let getImportPath (com: ICompiler) (filePath: string) (importPath: string) =
-          if not(importPath.StartsWith ".")
-          then importPath
-          else
-              let filePath = Path.GetFullPath filePath
-              let projFile = Path.GetFullPath com.Options.projFile
-              if Path.GetDirectoryName filePath = Path.GetDirectoryName projFile
-              then importPath
-              else
-                  getRelativePath projFile filePath
-                  |> Path.GetDirectoryName
-                  |> fun relPath ->
-                      match Path.Combine(relPath, importPath) with
-                      | path when path.StartsWith "." -> path
-                      | path -> "./" + path 
-                      |> normalizePath
-    
+    let getImportPath (com: ICompiler) (filePath: string) (importPath: string) =
+        if not(importPath.StartsWith ".")
+        then importPath
+        else
+            let filePath = Path.GetFullPath filePath
+            let projFile = Path.GetFullPath com.Options.projFile
+            if Path.GetDirectoryName filePath = Path.GetDirectoryName projFile
+            then importPath
+            else
+                getRelativePath projFile filePath
+                |> Path.GetDirectoryName
+                |> fun relPath ->
+                    match Path.Combine(relPath, importPath) with
+                    | path when path.StartsWith "." -> path
+                    | path -> "./" + path 
+                    |> normalizePath
 

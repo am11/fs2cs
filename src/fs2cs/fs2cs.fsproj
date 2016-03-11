@@ -63,6 +63,11 @@
     <None Include="paket.references" />
     <None Include="paket.template" />
     <Compile Include="Util.fs" />
+    <Compile Include="AST.Common.fs" />
+    <Compile Include="AST.Fable.fs" />
+    <Compile Include="Replacements.fs" />
+    <Compile Include="FSharp2Fable.Util.fs" />
+    <Compile Include="FSharp2Fable.fs" />
     <Compile Include="Library.fs" />
     <Content Include="App.config" />
   </ItemGroup>

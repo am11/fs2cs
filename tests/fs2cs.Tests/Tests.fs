@@ -7,6 +7,7 @@ open Microsoft.FSharp.Compiler.SourceCodeServices
 open Newtonsoft.Json
 open FSharp.Reflection
 open Newtonsoft.Json.Serialization
+open System.IO
 
 type ErasedUnionConverter() =
     inherit JsonConverter()
@@ -37,7 +38,7 @@ type CustomResolver() =
       property
       
 
-let print par =
+let print fileName par =
     let jsonSettings = 
         JsonSerializerSettings(
             Converters=[|ErasedUnionConverter()|],
@@ -47,7 +48,7 @@ let print par =
             StringEscapeHandling=StringEscapeHandling.EscapeNonAscii)
     jsonSettings.ContractResolver <- CustomResolver()
     let result = JsonConvert.SerializeObject (par, jsonSettings)
-    Log.Debug ("{@parsed}",result)
+    File.WriteAllText(fileName+".json", result )
 
 
 [<SetUpFixture>]
@@ -57,8 +58,9 @@ type SetupTest() =
         Log.Logger <- LoggerConfiguration()
             .Destructure.FSharpTypes()
             .MinimumLevel.Debug() 
-            .WriteTo.File("output.json")
+            .WriteTo.File("log.txt")
             .CreateLogger()
+        Log.Information "Logging started"
 
 #if NONO
 [<Test>]
@@ -125,10 +127,5 @@ let ``simple "let a=123;;printfn \"%A\" a" compile works`` () =
 let ``simple "let a=123;;a+1" compile works`` () =
   let compiled = Library.main [|"--code";"let a=123;;a+1"|]
   Assert.NotNull(compiled)
-  Assert.IsEmpty(compiled.Errors)
-  Assert.IsNotEmpty( compiled.AssemblyContents.ImplementationFiles )
-  let declarations = compiled.AssemblyContents.ImplementationFiles.Head.Declarations
-  Assert.IsNotEmpty( declarations )
-  let declaration = declarations.Head
-  match declaration with
-  | _ -> Assert.Fail(sprintf "OTHER: %A" declarations)
+  Assert.IsNotEmpty(compiled)
+  print "123Add1" compiled
