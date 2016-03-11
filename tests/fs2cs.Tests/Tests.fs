@@ -2,6 +2,18 @@ module fs2cs.Tests
 
 open fs2cs
 open NUnit.Framework
+open Serilog
+
+[<SetUpFixture>]
+type SetupTest() =
+    [<SetUp>]
+    let ``start logging`` =
+        Log.Logger <- LoggerConfiguration()
+            .Destructure.FSharpTypes()
+            .MinimumLevel.Debug() 
+            .WriteTo.ColoredConsole()
+            .CreateLogger()
+        Log.Information( "Tests started" )
 
 [<Test>]
 let ``hello returns 42`` () =
@@ -11,6 +23,7 @@ let ``hello returns 42`` () =
 
 [<Test>]
 let ``empty () compile works`` () =
-  let result = Library.main [|"--code";"()"|]
-  printfn "%A" result
-  Assert.NotNull(result)
+  let compiled = Library.main [|"--code";"()"|]
+  //Log.Debug( "{@Compiled}", compiled )
+  Assert.NotNull(compiled)
+  Assert.IsEmpty(compiled.Errors)

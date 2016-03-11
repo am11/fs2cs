@@ -3,6 +3,7 @@ source https://nuget.org/api/v2
 group Build
   source https://nuget.org/api/v2
   
+nuget Destructurama.FSharp
   nuget FSharp.Compiler.Service
 nuget FSharp.Compiler.Service.ProjectCracker
 nuget Logary
