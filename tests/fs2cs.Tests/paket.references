@@ -6,3 +6,4 @@ Destructurama.FSharp
 group Test
 NUnit
 NUnit.Runners
+Newtonsoft.Json
