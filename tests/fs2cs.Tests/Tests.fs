@@ -26,7 +26,12 @@ type CustomResolver() =
     inherit DefaultContractResolver()
     override x.CreateProperty(member1, memberSerialization)  =
       let property = base.CreateProperty(member1, memberSerialization)
-      let badPropNames = [| "FSharpDelegateSignature"; "QualifiedName"; "FullName"; "AbbreviatedType" |]
+      let badPropNames = 
+        [| "FSharpDelegateSignature"; "QualifiedName"; "FullName"; "AbbreviatedType";
+           "GenericParameter"; "GetterMethod"; "EventAddMethod"; "EventRemoveMethod";
+           "EventDelegateType"; "EventIsStandard"; "SetterMethod"; "NamedEntity";
+           "TypeDefinition"
+        |]
       if badPropNames |> Seq.exists( fun p -> p = property.PropertyName ) then 
         property.ShouldSerialize <- ( fun _ -> false )
       property
@@ -38,6 +43,7 @@ let print par =
             Converters=[|ErasedUnionConverter()|],
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
             NullValueHandling = NullValueHandling.Ignore,
+            MissingMemberHandling = MissingMemberHandling.Ignore,
             StringEscapeHandling=StringEscapeHandling.EscapeNonAscii)
     jsonSettings.ContractResolver <- CustomResolver()
     JsonConvert.SerializeObject (par, jsonSettings) |> printfn "%s"
@@ -54,6 +60,7 @@ type SetupTest() =
             .CreateLogger()
         Log.Information( "Tests started" )
 
+#if NONO
 [<Test>]
 let ``hello returns 42`` () =
   let result = Library.hello 42
@@ -66,6 +73,7 @@ let ``empty "()" compile works`` () =
   //Log.Debug( "{@Compiled}", compiled )
   Assert.NotNull(compiled)
   Assert.IsEmpty(compiled.Errors)
+#endif
 
 [<Test>]
 let ``simple "let a=12345" compile works`` () =
@@ -84,7 +92,7 @@ let ``simple "let a=12345" compile works`` () =
       | _ -> Assert.Fail(sprintf "OTHER: %A" y)
   | _ -> Assert.Fail(sprintf "OTHER: %A" declaration)
   print compiled
-
+#if NONO
 [<Test>]
 let ``simple "printfn \"Hello\"" compile works`` () =
   let compiled = Library.main [|"--code";"printfn \"Hello\""|]
@@ -101,3 +109,4 @@ let ``simple "printfn \"Hello\"" compile works`` () =
       | _ -> Assert.Fail(sprintf "OTHER: %A" y)
   | _ -> Assert.Fail(sprintf "OTHER: %A" declaration)
   Log.Debug( "{@declarations}", declarations )  
+#endif
