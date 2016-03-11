@@ -10,7 +10,7 @@ let ``hello returns 42`` () =
   Assert.AreEqual(42,result)
 
 [<Test>]
-let ``empty compile works`` () =
-  let result = Library.main 
+let ``empty () compile works`` () =
+  let result = Library.main [|"--code";"()"|]
   printfn "%A" result
   Assert.NotNull(result)

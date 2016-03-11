@@ -5,6 +5,7 @@ group Build
   
   nuget FSharp.Compiler.Service
 nuget FSharp.Compiler.Service.ProjectCracker
+nuget Logary
   nuget SourceLink.Fake
   nuget FAKE
   nuget FSharp.Formatting
