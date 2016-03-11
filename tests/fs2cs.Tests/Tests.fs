@@ -121,7 +121,6 @@ let ``simple "let a=123;;printfn \"%A\" a" compile works`` () =
   let declaration = declarations.Head
   match declaration with
   | _ -> Assert.Fail(sprintf "OTHER: %A" declarations)
-*)
 
 [<Test>]
 let ``simple "let a=123;;a+1" compile works`` () =
@@ -129,3 +128,11 @@ let ``simple "let a=123;;a+1" compile works`` () =
   Assert.NotNull(compiled)
   Assert.IsNotEmpty(compiled)
   print "123Add1" compiled
+*)
+
+[<Test>]
+let ``simple "let a=123;;let fac b = b+1;;fac a" compile works`` () =
+  let compiled = Library.main [|"--code";"let a=123;;let fac b = b+1;;fac a"|]
+  Assert.NotNull(compiled)
+  Assert.IsNotEmpty(compiled)
+  print "123Fac1" compiled
