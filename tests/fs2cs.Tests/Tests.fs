@@ -46,7 +46,8 @@ let print par =
             MissingMemberHandling = MissingMemberHandling.Ignore,
             StringEscapeHandling=StringEscapeHandling.EscapeNonAscii)
     jsonSettings.ContractResolver <- CustomResolver()
-    JsonConvert.SerializeObject (par, jsonSettings) |> printfn "%s"
+    let result = JsonConvert.SerializeObject (par, jsonSettings)
+    Log.Debug ("{@parsed}",result)
 
 
 [<SetUpFixture>]
@@ -56,9 +57,8 @@ type SetupTest() =
         Log.Logger <- LoggerConfiguration()
             .Destructure.FSharpTypes()
             .MinimumLevel.Debug() 
-            .WriteTo.ColoredConsole()
+            .WriteTo.File("output.json")
             .CreateLogger()
-        Log.Information( "Tests started" )
 
 #if NONO
 [<Test>]
@@ -70,15 +70,14 @@ let ``hello returns 42`` () =
 [<Test>]
 let ``empty "()" compile works`` () =
   let compiled = Library.main [|"--code";"()"|]
-  //Log.Debug( "{@Compiled}", compiled )
   Assert.NotNull(compiled)
   Assert.IsEmpty(compiled.Errors)
 #endif
 
+(*
 [<Test>]
 let ``simple "let a=12345" compile works`` () =
   let compiled = Library.main [|"--code";"let a=12345"|]
-  //Log.Debug( "{@Compiled}", compiled )
   Assert.NotNull(compiled)
   Assert.IsEmpty(compiled.Errors)
   Assert.IsNotEmpty( compiled.AssemblyContents.ImplementationFiles )
@@ -91,8 +90,8 @@ let ``simple "let a=12345" compile works`` () =
       | MemberOrFunctionOrValue(a, b, c) -> Assert.AreEqual("a",a.DisplayName)
       | _ -> Assert.Fail(sprintf "OTHER: %A" y)
   | _ -> Assert.Fail(sprintf "OTHER: %A" declaration)
-  print compiled
-#if NONO
+  //print compiled
+
 [<Test>]
 let ``simple "printfn \"Hello\"" compile works`` () =
   let compiled = Library.main [|"--code";"printfn \"Hello\""|]
@@ -108,5 +107,28 @@ let ``simple "printfn \"Hello\"" compile works`` () =
       | MemberOrFunctionOrValue(a, b, c) -> Assert.AreEqual("a",a.DisplayName)
       | _ -> Assert.Fail(sprintf "OTHER: %A" y)
   | _ -> Assert.Fail(sprintf "OTHER: %A" declaration)
-  Log.Debug( "{@declarations}", declarations )  
-#endif
+
+[<Test>]
+let ``simple "let a=123;;printfn \"%A\" a" compile works`` () =
+  let compiled = Library.main [|"--code";"let a=123;;printfn \"%A\" a"|]
+  Assert.NotNull(compiled)
+  Assert.IsEmpty(compiled.Errors)
+  Assert.IsNotEmpty( compiled.AssemblyContents.ImplementationFiles )
+  let declarations = compiled.AssemblyContents.ImplementationFiles.Head.Declarations
+  Assert.IsNotEmpty( declarations )
+  let declaration = declarations.Head
+  match declaration with
+  | _ -> Assert.Fail(sprintf "OTHER: %A" declarations)
+*)
+
+[<Test>]
+let ``simple "let a=123;;a+1" compile works`` () =
+  let compiled = Library.main [|"--code";"let a=123;;a+1"|]
+  Assert.NotNull(compiled)
+  Assert.IsEmpty(compiled.Errors)
+  Assert.IsNotEmpty( compiled.AssemblyContents.ImplementationFiles )
+  let declarations = compiled.AssemblyContents.ImplementationFiles.Head.Declarations
+  Assert.IsNotEmpty( declarations )
+  let declaration = declarations.Head
+  match declaration with
+  | _ -> Assert.Fail(sprintf "OTHER: %A" declarations)
