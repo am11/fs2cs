@@ -1,3 +1,7 @@
 group Test
 NUnit
 NUnit.Runners
+
+group Build
+FSharp.Compiler.Service
+FSharp.Compiler.Service.ProjectCracker

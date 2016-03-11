@@ -3,6 +3,8 @@ source https://nuget.org/api/v2
 group Build
   source https://nuget.org/api/v2
   
+  nuget FSharp.Compiler.Service
+nuget FSharp.Compiler.Service.ProjectCracker
   nuget SourceLink.Fake
   nuget FAKE
   nuget FSharp.Formatting
