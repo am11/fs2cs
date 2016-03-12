@@ -22,6 +22,37 @@ module Compiler =
 
         let compilationUnit = compilationUnit.AddUsings( SyntaxFactory.UsingDirective( SyntaxFactory.IdentifierName( "System" ) ) )
         let classDeclaration = SyntaxFactory.ClassDeclaration( file.Root.Name )
+                
+        let members = 
+          file.Declarations |> Seq.map( fun declaration ->
+            match declaration with
+            | MemberDeclaration(member1) ->
+                let kind = member1.Kind
+                match kind with
+                | Getter(name,isField) -> 
+                    let propertyDeclaration = 
+                      SyntaxFactory.PropertyDeclaration( 
+                        SyntaxFactory.IdentifierName( member1.Body.Type.FullName ), file.Root.Name 
+                      )
+                    let result : MemberDeclarationSyntax = upcast propertyDeclaration
+                    result
+                | _ -> 
+                  let propertyDeclaration = 
+                    SyntaxFactory.PropertyDeclaration( 
+                      SyntaxFactory.IdentifierName( "String" ), kind.ToString()
+                    )
+                  let result : MemberDeclarationSyntax = upcast propertyDeclaration
+                  result
+             | _ -> 
+                  let propertyDeclaration = 
+                    SyntaxFactory.PropertyDeclaration( 
+                      SyntaxFactory.IdentifierName( "String" ), declaration.ToString()
+                    )
+                  let result : MemberDeclarationSyntax = upcast propertyDeclaration
+                  result
+          )
+          |> Seq.toArray 
+        let classDeclaration = classDeclaration.AddMembers(members)
         let compilationUnit = compilationUnit.AddMembers( classDeclaration )
 
         let sb = new StringBuilder()
