@@ -135,6 +135,25 @@ let ``simple "let a=123;;a+1" compile works`` () =
   print "123Add1" compiled
 *)
 
+(* 
+[CompilationMapping(SourceConstructFlags.Module)]
+public static class Test1
+{
+	public static int a
+	{
+		[DebuggerNonUserCode, CompilerGenerated]
+		get
+		{
+			return 123;
+		}
+	}
+
+	public static int fac(int b)
+	{
+		return b + 1;
+	}
+}
+*)
 [<Test>]
 let ``simple "let a=123;;let fac b = b+1;;fac a" compile works`` () =
   try
