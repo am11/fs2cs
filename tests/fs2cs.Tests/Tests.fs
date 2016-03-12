@@ -1,5 +1,6 @@
 module fs2cs.Tests
 
+open System
 open fs2cs
 open NUnit.Framework
 open Serilog
@@ -136,7 +137,15 @@ let ``simple "let a=123;;a+1" compile works`` () =
 
 [<Test>]
 let ``simple "let a=123;;let fac b = b+1;;fac a" compile works`` () =
-  let compiled = Library.main [|"--code";"let a=123;;let fac b = b+1;;fac a"|]
-  Assert.NotNull(compiled)
-  Assert.IsNotEmpty(compiled)
-  compiled |> Seq.iter( fun p -> printCs "123Fac1" p )  
+  try
+    let compiled = Library.main [|"--code";"let a=123;;let fac b = b+1;;fac a"|]
+    Assert.NotNull(compiled)
+    Assert.IsNotEmpty(compiled)
+    compiled |> Seq.iter( fun p -> printCs "123Fac1" p )  
+  with
+  | ex ->
+    if ex :? System.Reflection.ReflectionTypeLoadException then
+      let loaderEx = ex :?> System.Reflection.ReflectionTypeLoadException
+      failwith (loaderEx.LoaderExceptions |> Seq.fold ( fun acc elem -> acc + "\n" + elem.Message ) String.Empty)
+    else
+      failwith ex.Message
