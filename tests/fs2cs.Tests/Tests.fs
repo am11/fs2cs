@@ -38,7 +38,12 @@ type CustomResolver() =
       property
       
 
-let print fileName par =
+let printCs fileName par =
+    let file = new StreamWriter(fileName+".cs")
+    file.WriteLine(par.ToString())
+    file.Close()
+
+let printJson fileName par =
     let jsonSettings = 
         JsonSerializerSettings(
             Converters=[|ErasedUnionConverter()|],
@@ -49,7 +54,6 @@ let print fileName par =
     jsonSettings.ContractResolver <- CustomResolver()
     let result = JsonConvert.SerializeObject (par, jsonSettings)
     File.WriteAllText(fileName+".json", result )
-
 
 [<SetUpFixture>]
 type SetupTest() =
@@ -135,4 +139,4 @@ let ``simple "let a=123;;let fac b = b+1;;fac a" compile works`` () =
   let compiled = Library.main [|"--code";"let a=123;;let fac b = b+1;;fac a"|]
   Assert.NotNull(compiled)
   Assert.IsNotEmpty(compiled)
-  print "123Fac1" compiled
+  compiled |> Seq.iter( fun p -> printCs "123Fac1" p )  

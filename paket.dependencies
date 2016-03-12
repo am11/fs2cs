@@ -3,10 +3,12 @@ source https://nuget.org/api/v2
 group Build
   source https://nuget.org/api/v2
   
-nuget Destructurama.FSharp
+  nuget Destructurama.FSharp
   nuget FSharp.Compiler.Service
-nuget FSharp.Compiler.Service.ProjectCracker
-nuget Logary
+  nuget FSharp.Compiler.Service.ProjectCracker
+  nuget Logary
+  nuget Microsoft.CodeAnalysis.CSharp
+  nuget Microsoft.CodeAnalysis.CSharp.Workspaces
   nuget SourceLink.Fake
   nuget FAKE
   nuget FSharp.Formatting
@@ -16,6 +18,6 @@ nuget Logary
 group Test
   source https://nuget.org/api/v2
   
-nuget Newtonsoft.Json
+  nuget Newtonsoft.Json
   nuget NUnit ~> 2
   nuget NUnit.Runners ~> 2
