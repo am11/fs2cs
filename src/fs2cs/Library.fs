@@ -87,12 +87,16 @@ module Library =
         |> failwith
 
 
-  let compile com checker projCode fileMask =
+  let parse com checker projCode fileMask =
     try
         parseFSharpProject com checker projCode
         |> FSharp2Fable.Compiler.transformFiles com fileMask
     with ex ->
         failwith ex.Message
+
+  let compile com checker projCode fileMask =
+    parse com checker projCode fileMask
+    |> Fable2CSharp.Compiler.transformFiles com
 
   let main argv =
     let opts =

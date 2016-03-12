@@ -68,6 +68,7 @@
     <Compile Include="Replacements.fs" />
     <Compile Include="FSharp2Fable.Util.fs" />
     <Compile Include="FSharp2Fable.fs" />
+    <Compile Include="Fable2CSharp.fs" />
     <Compile Include="Library.fs" />
     <Content Include="App.config" />
   </ItemGroup>
