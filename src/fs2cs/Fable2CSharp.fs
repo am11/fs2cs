@@ -13,15 +13,21 @@ module Compiler =
     open Microsoft.CodeAnalysis.CSharp.Syntax
 
     let transformFiles (com: ICompiler) (files: File list) =
-      let workspace = AdhocWorkspace()
-      let options = workspace.Options
-      let options = options.WithChangedOption( CSharpFormattingOptions.NewLinesForBracesInMethods, false );
-      let options = options.WithChangedOption( CSharpFormattingOptions.NewLinesForBracesInTypes, false );
-      let compilationUnit = SyntaxFactory.CompilationUnit()
-      let formattedNode = Formatter.Format( compilationUnit, workspace, options );
-      let sb = new StringBuilder()
-      let writer = new StringWriter( sb )
-      formattedNode.WriteTo( writer );
+      files |> Seq.map( fun file ->
+        let workspace = AdhocWorkspace()
+        let options = workspace.Options
+        let options = options.WithChangedOption( CSharpFormattingOptions.NewLinesForBracesInMethods, false );
+        let options = options.WithChangedOption( CSharpFormattingOptions.NewLinesForBracesInTypes, false );
+        let compilationUnit = SyntaxFactory.CompilationUnit()
 
-      [writer]
+        let compilationUnit = compilationUnit.AddUsings( SyntaxFactory.UsingDirective( SyntaxFactory.IdentifierName( "System" ) ) )
+        let classDeclaration = SyntaxFactory.ClassDeclaration( file.Root.Name )
+        let compilationUnit = compilationUnit.AddMembers( classDeclaration )
 
+        let sb = new StringBuilder()
+        let writer = new StringWriter( sb )
+        let formattedNode = Formatter.Format( compilationUnit, workspace, options );
+        formattedNode.WriteTo( writer );
+
+        writer
+      )
