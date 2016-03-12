@@ -10,3 +10,4 @@ group Test
 NUnit
 NUnit.Runners
 Newtonsoft.Json
+Microsoft.Composition
