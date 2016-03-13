@@ -31,27 +31,20 @@ module Compiler =
                 match kind with
                 | Getter(name,isField) -> 
                     let propertyDeclaration = 
-                      SyntaxFactory.PropertyDeclaration( 
-                        SyntaxFactory.IdentifierName( member1.Body.Type.FullName ), file.Root.Name 
+                      SyntaxFactory.FieldDeclaration( 
+                        //SyntaxFactory.IdentifierName( member1.Body.Type.FullName ), name
+                        SyntaxFactory.VariableDeclaration( SyntaxFactory.IdentifierName( SyntaxFactory.Identifier(name) ) )
                       )
+                    let propertyDeclaration = propertyDeclaration.WithModifiers( SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)) )
+                    let propertyDeclaration = propertyDeclaration.WithModifiers( SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)) )
+                    let propertyDeclaration = propertyDeclaration.WithSemicolonToken
                     let result : MemberDeclarationSyntax = upcast propertyDeclaration
-                    result
-                | _ -> 
-                  let propertyDeclaration = 
-                    SyntaxFactory.PropertyDeclaration( 
-                      SyntaxFactory.IdentifierName( "String" ), kind.ToString()
-                    )
-                  let result : MemberDeclarationSyntax = upcast propertyDeclaration
-                  result
-             | _ -> 
-                  let propertyDeclaration = 
-                    SyntaxFactory.PropertyDeclaration( 
-                      SyntaxFactory.IdentifierName( "String" ), declaration.ToString()
-                    )
-                  let result : MemberDeclarationSyntax = upcast propertyDeclaration
-                  result
+                    Some(result)
+                | _ -> None
+                  
+             | _ -> None
           )
-          |> Seq.toArray 
+          |> Seq.filter( fun p -> p.IsSome) |> Seq.map( fun p->p.Value) |> Seq.toArray 
         let classDeclaration = classDeclaration.AddMembers(members)
         let compilationUnit = compilationUnit.AddMembers( classDeclaration )
 
