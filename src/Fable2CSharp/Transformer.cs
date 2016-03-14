@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Fable.AST.Fable;
 
-namespace Fable2CSharp
+namespace fs2cs.Fable2CSharp
 {
     public class Transformer
     {

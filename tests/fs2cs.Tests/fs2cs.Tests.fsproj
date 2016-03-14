@@ -78,6 +78,11 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <ProjectReference Include="..\..\src\Fable2CSharp\Fable2CSharp.csproj">
+      <Name>Fable2CSharp</Name>
+      <Project>{dfacece4-6077-4b43-b0e0-2eb3b0fd297f}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\fs2cs\fs2cs.fsproj">
       <Name>fs2cs</Name>
       <Project>{63298dbb-971d-42db-b256-33628a19eaa3}</Project>

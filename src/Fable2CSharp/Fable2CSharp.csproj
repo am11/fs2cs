@@ -7,10 +7,11 @@
     <ProjectGuid>{DFACECE4-6077-4B43-B0E0-2EB3B0FD297F}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Fable2CSharp</RootNamespace>
-    <AssemblyName>Fable2CSharp</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <RootNamespace>fs2cs.Fable2CSharp</RootNamespace>
+    <AssemblyName>fs2cs.Fable2CSharp</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

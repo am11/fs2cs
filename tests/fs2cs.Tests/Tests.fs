@@ -69,7 +69,7 @@ type SetupTest() =
 
 [<Test>]
 let ``empty "()" compile works`` () =
-  let compiled = Library.parse |> Library.main [|"--code";"()"|]
+  let compiled = Library.compile |> Library.main [|"--code";"()"|]
   Assert.NotNull(compiled)
   Assert.IsNotEmpty(compiled)
 

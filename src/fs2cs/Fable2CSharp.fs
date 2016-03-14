@@ -20,36 +20,8 @@ module Compiler =
         let options = options.WithChangedOption( CSharpFormattingOptions.NewLinesForBracesInTypes, false );
         let compilationUnit = SyntaxFactory.CompilationUnit()
 
-        let compilationUnit = compilationUnit.AddUsings( SyntaxFactory.UsingDirective( SyntaxFactory.IdentifierName( "System" ) ) )
-        let classDeclaration = SyntaxFactory.ClassDeclaration( file.Root.Name )
-                
-        let members = 
-          file.Declarations |> Seq.map( fun declaration ->
-            match declaration with
-            | MemberDeclaration(member1) ->
-                let kind = member1.Kind
-                match kind with
-                | Getter(name,isField) -> 
-                    None
-                    (*
-                    let propertyDeclaration = 
-                      SyntaxFactory.FieldDeclaration( 
-                        //SyntaxFactory.IdentifierName( member1.Body.Type.FullName ), name
-                        SyntaxFactory.VariableDeclaration( SyntaxFactory.IdentifierName( SyntaxFactory.Identifier(name) ) )
-                      )
-                    let propertyDeclaration = propertyDeclaration.WithModifiers( SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)) )
-                    let propertyDeclaration = propertyDeclaration.WithModifiers( SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)) )
-                    let propertyDeclaration = propertyDeclaration.WithSemicolonToken
-                    let result : MemberDeclarationSyntax = upcast propertyDeclaration
-                    Some(result)
-                    *)
-                | _ -> None
-                  
-             | _ -> None
-          )
-          |> Seq.filter( fun p -> p.IsSome) |> Seq.map( fun p->p.Value) |> Seq.toArray 
-        let classDeclaration = classDeclaration.AddMembers(members)
-        let compilationUnit = compilationUnit.AddMembers( classDeclaration )
+        let transformer = Transformer()
+        let compilationUnit = transformer.Transform( file, compilationUnit, workspace, options )
 
         let sb = new StringBuilder()
         let writer = new StringWriter( sb )
