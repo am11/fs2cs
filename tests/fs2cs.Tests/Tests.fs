@@ -75,7 +75,7 @@ let ``empty "()" compile works`` () =
   let a = compiled |> Seq.toArray
   Assert.AreEqual( 1, a.Length )
   let content = ( a.[0] |> snd ).ToString()
-  Assert.AreEqual( sprintf "class %s {\r\n}" ( a.[0] |> fst ).Root.Name, content )
+  Assert.AreEqual( sprintf "public class %s {\r\n}" ( a.[0] |> fst ).Root.Name, content )
 
 (*
 [<Test>]

@@ -18,9 +18,11 @@ namespace fs2cs.Fable2CSharp
     {
         public CompilationUnitSyntax Transform(File file, CompilationUnitSyntax compilationUnit, AdhocWorkspace workspace, OptionSet options)
         {
-            return 
+            // F# module - The default is public. C# class -  Internal is the default if no access modifier is specified. 
+            return
                 compilationUnit
-                .WithMembers(SingletonList<MemberDeclarationSyntax>(ClassDeclaration(file.Root.Name))).NormalizeWhitespace()
+                .WithMembers(SingletonList<MemberDeclarationSyntax>(ClassDeclaration(file.Root.Name).WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))))
+                .NormalizeWhitespace()
             ;
         }
     }
