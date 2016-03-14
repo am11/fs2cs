@@ -10,14 +10,18 @@ using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Fable.AST.Fable;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace fs2cs.Fable2CSharp
 {
     public class Transformer
     {
-        public CompilationUnitSyntax Transform(File file, CompilationUnitSyntax compilationUnit, AdhocWorkspace workspace, OptionSet options )
+        public CompilationUnitSyntax Transform(File file, CompilationUnitSyntax compilationUnit, AdhocWorkspace workspace, OptionSet options)
         {
-            return compilationUnit;
+            return 
+                compilationUnit
+                .WithMembers(SingletonList<MemberDeclarationSyntax>(ClassDeclaration(file.Root.Name))).NormalizeWhitespace()
+            ;
         }
     }
 }

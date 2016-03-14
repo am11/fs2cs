@@ -72,6 +72,10 @@ let ``empty "()" compile works`` () =
   let compiled = Library.compile |> Library.main [|"--code";"()"|]
   Assert.NotNull(compiled)
   Assert.IsNotEmpty(compiled)
+  let a = compiled |> Seq.toArray
+  Assert.AreEqual( 1, a.Length )
+  let content = ( a.[0] |> snd ).ToString()
+  Assert.AreEqual( sprintf "class %s {\r\n}" ( a.[0] |> fst ).Root.Name, content )
 
 (*
 [<Test>]

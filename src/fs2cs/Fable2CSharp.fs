@@ -28,5 +28,5 @@ module Compiler =
         let formattedNode = Formatter.Format( compilationUnit, workspace, options );
         formattedNode.WriteTo( writer );
 
-        writer
+        file,writer
       )
