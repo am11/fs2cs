@@ -14,7 +14,7 @@ module Compiler =
 
     let transformFiles (com: ICompiler) (files: File list) =
       files |> Seq.map( fun file ->
-        let workspace = AdhocWorkspace()
+        let workspace = new AdhocWorkspace()
         let options = workspace.Options
         let options = options.WithChangedOption( CSharpFormattingOptions.NewLinesForBracesInMethods, false );
         let options = options.WithChangedOption( CSharpFormattingOptions.NewLinesForBracesInTypes, false );

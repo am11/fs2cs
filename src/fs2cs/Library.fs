@@ -27,7 +27,7 @@ module Library =
     parse com checker projCode fileMask
     |> Fable2CSharp.Compiler.transformFiles com
 
-  let main argv =
+  let main argv operation =
     let opts =
         Fable.Main.readOptions argv
         |> function
@@ -39,5 +39,4 @@ module Library =
                 member __.Options = opts
                 member __.Plugins = plugins }
     let checker = FSharpChecker.Create(keepAssemblyContents=true)
-    // First full compilation
-    compile com checker (Option.ofObj opts.code) None
+    operation com checker (Option.ofObj opts.code) None

@@ -67,19 +67,11 @@ type SetupTest() =
             .CreateLogger()
         Log.Information "Logging started"
 
-#if NONO
-[<Test>]
-let ``hello returns 42`` () =
-  let result = Library.hello 42
-  printfn "%i" result
-  Assert.AreEqual(42,result)
-
 [<Test>]
 let ``empty "()" compile works`` () =
-  let compiled = Library.main [|"--code";"()"|]
+  let compiled = Library.parse |> Library.main [|"--code";"()"|]
   Assert.NotNull(compiled)
-  Assert.IsEmpty(compiled.Errors)
-#endif
+  Assert.IsNotEmpty(compiled)
 
 (*
 [<Test>]

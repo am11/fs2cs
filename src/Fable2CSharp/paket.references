@@ -1,0 +1,3 @@
+group Build
+Microsoft.CodeAnalysis.CSharp
+Microsoft.CodeAnalysis.CSharp.Workspaces
