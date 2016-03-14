@@ -153,7 +153,6 @@ public static class Test1
 		return b + 1;
 	}
 }
-*)
 [<Test>]
 let ``simple "let a=123;;let fac b = b+1;;fac a" compile works`` () =
   try
@@ -168,3 +167,4 @@ let ``simple "let a=123;;let fac b = b+1;;fac a" compile works`` () =
       failwith (loaderEx.LoaderExceptions |> Seq.fold ( fun acc elem -> acc + "\n" + elem.Message ) String.Empty)
     else
       failwith ex.Message
+*)

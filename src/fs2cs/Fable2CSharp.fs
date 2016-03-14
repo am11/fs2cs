@@ -30,6 +30,8 @@ module Compiler =
                 let kind = member1.Kind
                 match kind with
                 | Getter(name,isField) -> 
+                    None
+                    (*
                     let propertyDeclaration = 
                       SyntaxFactory.FieldDeclaration( 
                         //SyntaxFactory.IdentifierName( member1.Body.Type.FullName ), name
@@ -40,6 +42,7 @@ module Compiler =
                     let propertyDeclaration = propertyDeclaration.WithSemicolonToken
                     let result : MemberDeclarationSyntax = upcast propertyDeclaration
                     Some(result)
+                    *)
                 | _ -> None
                   
              | _ -> None
