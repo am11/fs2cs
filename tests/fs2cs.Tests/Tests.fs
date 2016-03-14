@@ -100,6 +100,21 @@ let ``simple "let a=12345;;let b=678" compile works`` () =
   let file = fst a.[0]
   printJson "a12345" file
   Assert.AreEqual( sprintf "public class %s {\r\n    public readonly int a = 12345;\r\n    public readonly int b = 678;\r\n}" file.Root.Name, content )
+
+
+[<Test>]
+let ``simple "let c=\"hello\"" compile works`` () =
+  let compiled = Library.compile |> Library.main [|"--code";"let c=\"hello\""|]
+  Assert.NotNull(compiled)
+  Assert.IsNotEmpty(compiled)
+  let a = compiled |> Seq.toArray
+  Assert.AreEqual( 1, a.Length )
+  let content = (snd  a.[0]).ToString()
+  let file = fst a.[0]
+  printJson "a12345" file
+  Assert.AreEqual( sprintf "public class %s {\r\n    public readonly string c = \"hello\";\r\n}" file.Root.Name, content )
+
+
 (*
 [<Test>]
 let ``simple "printfn \"Hello\"" compile works`` () =

@@ -30,9 +30,16 @@ namespace fs2cs.Fable2CSharp
             var member = declaration.Item;
             var memberBody = (Expr.Value)member.Body;
             var memberType = (Fable.AST.Fable.Type.PrimitiveType)memberBody.Type;
-            var memberTypeKind = (PrimitiveTypeKind.Number)memberType.Item;
-            var memberTypeKindItem = memberTypeKind.Item;
-            if (memberTypeKindItem.IsInt32) return SyntaxKind.IntKeyword;
+            if (memberType.Item.IsNumber)
+            {
+                var memberTypeKind = (PrimitiveTypeKind.Number)memberType.Item;
+                var memberTypeKindItem = memberTypeKind.Item;
+                if (memberTypeKindItem.IsInt32) return SyntaxKind.IntKeyword;
+            }
+            else if (memberType.Item.IsString)
+            {
+                return SyntaxKind.StringKeyword;
+            }
             return SyntaxKind.ObjectKeyword;
         }
         private SyntaxToken GetFieldName(Declaration.MemberDeclaration declaration)
@@ -47,9 +54,18 @@ namespace fs2cs.Fable2CSharp
             var member = declaration.Item;
             var memberBody = (Expr.Value)member.Body;
             var memberValue = memberBody.value;
-            var memberValueNumberConst = (ValueKind.NumberConst)memberValue;
-            var res = (Fable.AST.U2<int, double>.Case1)memberValueNumberConst.Item1;            
-            return LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(res.Item));
+            if (memberValue.IsNumberConst)
+            {
+                var memberValueNumberConst = (ValueKind.NumberConst)memberValue;
+                var res = (Fable.AST.U2<int, double>.Case1)memberValueNumberConst.Item1;
+                return LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(res.Item));
+            } else if (memberValue.IsStringConst)
+            {
+                var memberValueStringConst = (ValueKind.StringConst)memberValue;
+                return LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(memberValueStringConst.Item));                ;
+
+            }
+            return LiteralExpression(SyntaxKind.NullLiteralExpression);
         }
 
         private MemberDeclarationSyntax[] GetClassMembers(File file)
