@@ -35,12 +35,25 @@ namespace fs2cs.Fable2CSharp
             if (memberTypeKindItem.IsInt32) return SyntaxKind.IntKeyword;
             return SyntaxKind.ObjectKeyword;
         }
+        private SyntaxToken GetFieldName(Declaration.MemberDeclaration declaration)
+        {
+            var member = declaration.Item;
+            var memberKind = member.Kind;
+            var memberKindGetter = (MemberKind.Getter)member.Kind;            
+            return Identifier(memberKindGetter.name);
+        }
+        private LiteralExpressionSyntax GetFieldValue(Declaration.MemberDeclaration declaration)
+        {
+            var member = declaration.Item;
+            var memberBody = (Expr.Value)member.Body;
+            var memberValue = memberBody.value;
+            var memberValueNumberConst = (ValueKind.NumberConst)memberValue;
+            var res = (Fable.AST.U2<int, double>.Case1)memberValueNumberConst.Item1;            
+            return LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(res.Item));
+        }
 
         private MemberDeclarationSyntax[] GetClassMembers(File file)
         {
-            var f = new MemberDeclarationSyntax[] {
-                FieldDeclaration(VariableDeclaration(PredefinedType(Token(SyntaxKind.IntKeyword))).WithVariables(SingletonSeparatedList<VariableDeclaratorSyntax>(VariableDeclarator(Identifier("a")).WithInitializer(EqualsValueClause(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(12345))))))).WithModifiers(TokenList(new[] { Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.ReadOnlyKeyword) })),
-                FieldDeclaration(VariableDeclaration(PredefinedType(Token(SyntaxKind.IntKeyword))).WithVariables(SingletonSeparatedList<VariableDeclaratorSyntax>(VariableDeclarator(Identifier("b")).WithInitializer(EqualsValueClause(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(678))))))).WithModifiers(TokenList(new[] { Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.ReadOnlyKeyword) })) };
             var result = new List<MemberDeclarationSyntax>();
 
             foreach( var declaration in file.Declarations )
@@ -48,8 +61,8 @@ namespace fs2cs.Fable2CSharp
                 if (declaration.IsMemberDeclaration)
                 {
                     var fieldDeclaration = FieldDeclaration(VariableDeclaration(PredefinedType(Token(GetFieldType((Declaration.MemberDeclaration)declaration))))
-                        .WithVariables(SingletonSeparatedList<VariableDeclaratorSyntax>(VariableDeclarator(Identifier("a"))
-                        .WithInitializer(EqualsValueClause(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(12345)))))))
+                        .WithVariables(SingletonSeparatedList<VariableDeclaratorSyntax>(VariableDeclarator(GetFieldName((Declaration.MemberDeclaration)declaration))
+                        .WithInitializer(EqualsValueClause(GetFieldValue((Declaration.MemberDeclaration)declaration))))))
                         .WithModifiers(TokenList(new[] { Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.ReadOnlyKeyword) }));
                     result.Add(fieldDeclaration);
                 }
