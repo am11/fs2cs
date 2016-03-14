@@ -25,6 +25,17 @@ namespace fs2cs.Fable2CSharp
                             .WithMembers(List<MemberDeclarationSyntax>( GetClassMembers(file) ));
         }
 
+        private SyntaxKind GetFieldType(Declaration.MemberDeclaration declaration)
+        {
+            var member = declaration.Item;
+            var memberBody = (Expr.Value)member.Body;
+            var memberType = (Fable.AST.Fable.Type.PrimitiveType)memberBody.Type;
+            var memberTypeKind = (PrimitiveTypeKind.Number)memberType.Item;
+            var memberTypeKindItem = memberTypeKind.Item;
+            if (memberTypeKindItem.IsInt32) return SyntaxKind.IntKeyword;
+            return SyntaxKind.ObjectKeyword;
+        }
+
         private MemberDeclarationSyntax[] GetClassMembers(File file)
         {
             var f = new MemberDeclarationSyntax[] {
@@ -36,7 +47,10 @@ namespace fs2cs.Fable2CSharp
             {
                 if (declaration.IsMemberDeclaration)
                 {
-                    var fieldDeclaration = FieldDeclaration(VariableDeclaration(PredefinedType(Token(SyntaxKind.IntKeyword))).WithVariables(SingletonSeparatedList<VariableDeclaratorSyntax>(VariableDeclarator(Identifier("a")).WithInitializer(EqualsValueClause(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(12345))))))).WithModifiers(TokenList(new[] { Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.ReadOnlyKeyword) }));
+                    var fieldDeclaration = FieldDeclaration(VariableDeclaration(PredefinedType(Token(GetFieldType((Declaration.MemberDeclaration)declaration))))
+                        .WithVariables(SingletonSeparatedList<VariableDeclaratorSyntax>(VariableDeclarator(Identifier("a"))
+                        .WithInitializer(EqualsValueClause(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(12345)))))))
+                        .WithModifiers(TokenList(new[] { Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.ReadOnlyKeyword) }));
                     result.Add(fieldDeclaration);
                 }
             }
