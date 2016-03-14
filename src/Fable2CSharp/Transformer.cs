@@ -16,12 +16,40 @@ namespace fs2cs.Fable2CSharp
 {
     public class Transformer
     {
+        // F# module - The default is public. C# class -  Internal is the default if no access modifier is specified. 
+        private ClassDeclarationSyntax GetClass(File file)
+        {
+            return
+            ClassDeclaration(file.Root.Name)
+                            .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
+                            .WithMembers(List<MemberDeclarationSyntax>( GetClassMembers(file) ));
+        }
+
+        private MemberDeclarationSyntax[] GetClassMembers(File file)
+        {
+            var f = new MemberDeclarationSyntax[] {
+                FieldDeclaration(VariableDeclaration(PredefinedType(Token(SyntaxKind.IntKeyword))).WithVariables(SingletonSeparatedList<VariableDeclaratorSyntax>(VariableDeclarator(Identifier("a")).WithInitializer(EqualsValueClause(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(12345))))))).WithModifiers(TokenList(new[] { Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.ReadOnlyKeyword) })),
+                FieldDeclaration(VariableDeclaration(PredefinedType(Token(SyntaxKind.IntKeyword))).WithVariables(SingletonSeparatedList<VariableDeclaratorSyntax>(VariableDeclarator(Identifier("b")).WithInitializer(EqualsValueClause(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(678))))))).WithModifiers(TokenList(new[] { Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.ReadOnlyKeyword) })) };
+            var result = new List<MemberDeclarationSyntax>();
+
+            foreach( var declaration in file.Declarations )
+            {
+                if (declaration.IsMemberDeclaration)
+                {
+                    var fieldDeclaration = FieldDeclaration(VariableDeclaration(PredefinedType(Token(SyntaxKind.IntKeyword))).WithVariables(SingletonSeparatedList<VariableDeclaratorSyntax>(VariableDeclarator(Identifier("a")).WithInitializer(EqualsValueClause(LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(12345))))))).WithModifiers(TokenList(new[] { Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.ReadOnlyKeyword) }));
+                    result.Add(fieldDeclaration);
+                }
+            }
+
+            return result.ToArray();
+               
+        }
+
         public CompilationUnitSyntax Transform(File file, CompilationUnitSyntax compilationUnit, AdhocWorkspace workspace, OptionSet options)
         {
-            // F# module - The default is public. C# class -  Internal is the default if no access modifier is specified. 
             return
                 compilationUnit
-                .WithMembers(SingletonList<MemberDeclarationSyntax>(ClassDeclaration(file.Root.Name).WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))))
+                .WithMembers(SingletonList<MemberDeclarationSyntax>(GetClass(file)))
                 .NormalizeWhitespace()
             ;
         }

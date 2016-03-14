@@ -77,24 +77,19 @@ let ``empty "()" compile works`` () =
   let content = ( a.[0] |> snd ).ToString()
   Assert.AreEqual( sprintf "public class %s {\r\n}" ( a.[0] |> fst ).Root.Name, content )
 
-(*
 [<Test>]
 let ``simple "let a=12345" compile works`` () =
-  let compiled = Library.main [|"--code";"let a=12345"|]
+  let compiled = Library.compile |> Library.main [|"--code";"let a=12345"|]
   Assert.NotNull(compiled)
-  Assert.IsEmpty(compiled.Errors)
-  Assert.IsNotEmpty( compiled.AssemblyContents.ImplementationFiles )
-  let declarations = compiled.AssemblyContents.ImplementationFiles.Head.Declarations
-  Assert.IsNotEmpty( declarations )
-  let declaration = declarations.Head
-  match declaration with
-  | Entity(x,y) -> 
-      match y.Head with 
-      | MemberOrFunctionOrValue(a, b, c) -> Assert.AreEqual("a",a.DisplayName)
-      | _ -> Assert.Fail(sprintf "OTHER: %A" y)
-  | _ -> Assert.Fail(sprintf "OTHER: %A" declaration)
-  //print compiled
+  Assert.IsNotEmpty(compiled)
+  let a = compiled |> Seq.toArray
+  Assert.AreEqual( 1, a.Length )
+  let content = (snd  a.[0]).ToString()
+  let file = fst a.[0]
+  printJson "a12345" file
+  Assert.AreEqual( sprintf "public class %s {\r\n    public readonly int a = 12345;\r\n}" file.Root.Name, content )
 
+(*
 [<Test>]
 let ``simple "printfn \"Hello\"" compile works`` () =
   let compiled = Library.main [|"--code";"printfn \"Hello\""|]

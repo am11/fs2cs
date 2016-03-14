@@ -6,6 +6,7 @@ group Build
   nuget Destructurama.FSharp
   nuget FSharp.Compiler.Service
   nuget FSharp.Compiler.Service.ProjectCracker
+nuget FSharp.Core
   nuget Logary
   nuget Microsoft.CodeAnalysis.CSharp
   nuget Microsoft.CodeAnalysis.CSharp.Workspaces
