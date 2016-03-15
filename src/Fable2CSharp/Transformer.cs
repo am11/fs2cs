@@ -51,16 +51,7 @@ namespace fs2cs.Fable2CSharp
                 var apply = (Expr.Apply)expr;
                 var kind = apply.kind;
 
-                if ( kind.IsApplyMeth )
-                {
-                    var ex = TransformExpression(apply.callee);
-                }
-                else if (kind.IsApplyGet)
-                {
-                    var left = apply.args.First();
-                    return TransformExpression(left);
-                }
-                else if (apply.callee.IsValue)
+                if (apply.callee.IsValue && !kind.IsApplyGet )
                 {
                     var value = (Expr.Value)apply.callee;
                     if (value.value.IsBinaryOp)
@@ -70,11 +61,23 @@ namespace fs2cs.Fable2CSharp
                         var op = (ValueKind.BinaryOp)value.value;
                         if (op.Item.IsBinaryPlus)
                         {
-                            return BinaryExpression(SyntaxKind.PlusToken, (ExpressionSyntax)TransformExpression(left), (ExpressionSyntax)TransformExpression(right));
+                            var leftES = (ExpressionSyntax)TransformExpression(left);
+                            var rightES = (ExpressionSyntax)TransformExpression(right);
+                            return BinaryExpression(SyntaxKind.AddExpression, leftES, rightES);
                         }
                     }
 
                 }
+                else if ( kind.IsApplyMeth )
+                {
+                    var ex = TransformExpression(apply.callee);
+                }
+                else if (kind.IsApplyGet)
+                {
+                    var left = apply.args.First();
+                    return TransformExpression(left);
+                }
+
 
                 Console.WriteLine(apply.ToString());
             }
@@ -122,10 +125,10 @@ namespace fs2cs.Fable2CSharp
             var memberKindGetter = (MemberKind.Getter)member.Kind;            
             return Identifier(memberKindGetter.name);
         }
-        private LiteralExpressionSyntax GetFieldValue(Declaration.MemberDeclaration declaration)
+        private ExpressionSyntax GetFieldValue(Declaration.MemberDeclaration declaration)
         {
             var member = declaration.Item;
-            return (LiteralExpressionSyntax)TransformExpression(member.Body);
+            return (ExpressionSyntax)TransformExpression(member.Body);
         }
 
         private MemberDeclarationSyntax[] GetClassMembers(File file)
