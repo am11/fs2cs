@@ -75,7 +75,9 @@ namespace fs2cs.Fable2CSharp
                 else if (kind.IsApplyGet)
                 {
                     var left = apply.args.First();
-                    return TransformExpression(left);
+                    var ex = (LiteralExpressionSyntax)TransformExpression(left);
+                    var token = ex.Token;
+                    return IdentifierName(token.ValueText);
                 }
 
 
