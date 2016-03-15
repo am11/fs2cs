@@ -126,6 +126,14 @@ let ``simple "let a=12345;;let b=a+1" compile works`` () =
   printJson "a12345" file
   Assert.AreEqual( sprintf "public class %s {\r\n    public readonly int a = 12345;\r\n    public int b { get { return a+1; } }\r\n}" file.Root.Name, content )
 
+[<Test>]
+let ``empty "()" compile generate`` () =
+  let generated = Library.generate |> Library.main [|"--code";"()"|]
+  Assert.NotNull(generated)
+  Assert.IsNotEmpty(generated)
+  let a = generated |> Seq.toArray
+  Assert.AreEqual( 1, a.Length )
+  printJson "emptybabel" a
 
 (*
 [<Test>]

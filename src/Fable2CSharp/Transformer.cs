@@ -25,20 +25,93 @@ namespace fs2cs.Fable2CSharp
                             .WithMembers(List<MemberDeclarationSyntax>( GetClassMembers(file) ));
         }
 
+        private CSharpSyntaxNode TransformExpression (Fable.AST.Fable.Expr expr)
+        {
+            if ( expr.IsValue )
+            {
+                var value = (Expr.Value)expr;
+                var kind = value.value;
+                if ( kind.IsThis )
+                {
+                    return ThisExpression();
+                } else if ( kind.IsNumberConst )
+                {
+                    var const1 = (ValueKind.NumberConst)kind;
+                    var res = (Fable.AST.U2<int, double>.Case1)const1.Item1;
+                    return LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(res.Item));
+                }
+                else if (kind.IsStringConst)
+                {
+                    var memberValueStringConst = (ValueKind.StringConst)kind;
+                    return LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(memberValueStringConst.Item)); ;
+
+                }
+            } else if ( expr.IsApply )
+            {
+                var apply = (Expr.Apply)expr;
+                var kind = apply.kind;
+
+                if ( kind.IsApplyMeth )
+                {
+                    var ex = TransformExpression(apply.callee);
+                }
+                else if (kind.IsApplyGet)
+                {
+                    var left = apply.args.First();
+                    return TransformExpression(left);
+                }
+                else if (apply.callee.IsValue)
+                {
+                    var value = (Expr.Value)apply.callee;
+                    if (value.value.IsBinaryOp)
+                    {
+                        var left = apply.args.First();
+                        var right = apply.args.Last();
+                        var op = (ValueKind.BinaryOp)value.value;
+                        if (op.Item.IsBinaryPlus)
+                        {
+                            return BinaryExpression(SyntaxKind.PlusToken, (ExpressionSyntax)TransformExpression(left), (ExpressionSyntax)TransformExpression(right));
+                        }
+                    }
+
+                }
+
+                Console.WriteLine(apply.ToString());
+            }
+
+            throw new NotImplementedException(expr.ToString());
+        }
+
+        private SyntaxKind Typ2Type( Fable.AST.Fable.Type typ )
+        {
+            if ( typ.IsPrimitiveType )
+            {
+                var memberType = (Fable.AST.Fable.Type.PrimitiveType)typ;
+                if (memberType.Item.IsNumber)
+                {
+                    var memberTypeKind = (PrimitiveTypeKind.Number)memberType.Item;
+                    var memberTypeKindItem = memberTypeKind.Item;
+                    if (memberTypeKindItem.IsInt32) return SyntaxKind.IntKeyword;
+                }
+                else if (memberType.Item.IsString)
+                {
+                    return SyntaxKind.StringKeyword;
+                }
+            }
+            return SyntaxKind.ObjectKeyword;
+        }
+
         private SyntaxKind GetFieldType(Declaration.MemberDeclaration declaration)
         {
             var member = declaration.Item;
-            var memberBody = (Expr.Value)member.Body;
-            var memberType = (Fable.AST.Fable.Type.PrimitiveType)memberBody.Type;
-            if (memberType.Item.IsNumber)
+            if (member.Body.IsValue)
             {
-                var memberTypeKind = (PrimitiveTypeKind.Number)memberType.Item;
-                var memberTypeKindItem = memberTypeKind.Item;
-                if (memberTypeKindItem.IsInt32) return SyntaxKind.IntKeyword;
-            }
-            else if (memberType.Item.IsString)
+                var memberBody = (Expr.Value)member.Body;
+                return Typ2Type(memberBody.Type);
+            } else if (member.Body.IsApply)
             {
-                return SyntaxKind.StringKeyword;
+               var memberBody = (Expr.Apply)member.Body;
+                return Typ2Type(memberBody.typ);
             }
             return SyntaxKind.ObjectKeyword;
         }
@@ -52,20 +125,7 @@ namespace fs2cs.Fable2CSharp
         private LiteralExpressionSyntax GetFieldValue(Declaration.MemberDeclaration declaration)
         {
             var member = declaration.Item;
-            var memberBody = (Expr.Value)member.Body;
-            var memberValue = memberBody.value;
-            if (memberValue.IsNumberConst)
-            {
-                var memberValueNumberConst = (ValueKind.NumberConst)memberValue;
-                var res = (Fable.AST.U2<int, double>.Case1)memberValueNumberConst.Item1;
-                return LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(res.Item));
-            } else if (memberValue.IsStringConst)
-            {
-                var memberValueStringConst = (ValueKind.StringConst)memberValue;
-                return LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(memberValueStringConst.Item));                ;
-
-            }
-            return LiteralExpression(SyntaxKind.NullLiteralExpression);
+            return (LiteralExpressionSyntax)TransformExpression(member.Body);
         }
 
         private MemberDeclarationSyntax[] GetClassMembers(File file)
