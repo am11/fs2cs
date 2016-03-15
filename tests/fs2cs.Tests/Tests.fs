@@ -87,7 +87,7 @@ let ``simple "let a=12345" compile works`` () =
   let content = (snd  a.[0]).ToString()
   let file = fst a.[0]
   printJson "a12345" file
-  Assert.AreEqual( sprintf "public class %s {\r\n    public readonly int a = 12345;\r\n}" file.Root.Name, content )
+  Assert.AreEqual( sprintf "public class %s {\r\n    public static readonly int a = 12345;\r\n}" file.Root.Name, content )
 
 [<Test>]
 let ``simple "let a=12345;;let b=678" compile works`` () =
@@ -99,7 +99,7 @@ let ``simple "let a=12345;;let b=678" compile works`` () =
   let content = (snd  a.[0]).ToString()
   let file = fst a.[0]
   printJson "a12345" file
-  Assert.AreEqual( sprintf "public class %s {\r\n    public readonly int a = 12345;\r\n    public readonly int b = 678;\r\n}" file.Root.Name, content )
+  Assert.AreEqual( sprintf "public class %s {\r\n    public static readonly int a = 12345;\r\n    public static readonly int b = 678;\r\n}" file.Root.Name, content )
 
 
 [<Test>]
@@ -112,7 +112,7 @@ let ``simple "let c=\"hello\"" compile works`` () =
   let content = (snd  a.[0]).ToString()
   let file = fst a.[0]
   printJson "a12345" file
-  Assert.AreEqual( sprintf "public class %s {\r\n    public readonly string c = \"hello\";\r\n}" file.Root.Name, content )
+  Assert.AreEqual( sprintf "public class %s {\r\n    public static readonly string c = \"hello\";\r\n}" file.Root.Name, content )
 
 [<Test>]
 let ``simple "let a=12345;;let b=a+1" compile works`` () =
@@ -124,7 +124,7 @@ let ``simple "let a=12345;;let b=a+1" compile works`` () =
   let content = (snd  a.[0]).ToString()
   let file = fst a.[0]
   printJson "a12345" file
-  Assert.AreEqual( sprintf "public class %s {\r\n    public readonly int a = 12345;\r\n    public int b { get { return a+1; } }\r\n}" file.Root.Name, content )
+  Assert.AreEqual( sprintf "public class %s {\r\n    public static readonly int a = 12345;\r\n    public static readonly int b = a + 1;\r\n}" file.Root.Name, content )
 
 [<Test>]
 let ``empty "()" compile generate`` () =

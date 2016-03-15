@@ -144,7 +144,7 @@ namespace fs2cs.Fable2CSharp
                     var fieldDeclaration = FieldDeclaration(VariableDeclaration(PredefinedType(Token(GetFieldType((Declaration.MemberDeclaration)declaration))))
                         .WithVariables(SingletonSeparatedList<VariableDeclaratorSyntax>(VariableDeclarator(GetFieldName((Declaration.MemberDeclaration)declaration))
                         .WithInitializer(EqualsValueClause(GetFieldValue((Declaration.MemberDeclaration)declaration))))))
-                        .WithModifiers(TokenList(new[] { Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.ReadOnlyKeyword) }));
+                        .WithModifiers(TokenList(new[] { Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword), Token(SyntaxKind.ReadOnlyKeyword) }));
                     result.Add(fieldDeclaration);
                 }
             }
