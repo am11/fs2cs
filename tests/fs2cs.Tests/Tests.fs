@@ -86,7 +86,6 @@ let ``simple "let a=12345" compile works`` () =
   Assert.AreEqual( 1, a.Length )
   let content = (snd  a.[0]).ToString()
   let file = fst a.[0]
-  printJson "a12345" file
   Assert.AreEqual( sprintf "public class %s {\r\n    public static readonly int a = 12345;\r\n}" file.Root.Name, content )
 
 [<Test>]
@@ -98,7 +97,6 @@ let ``simple "let a=12345;;let b=678" compile works`` () =
   Assert.AreEqual( 1, a.Length )
   let content = (snd  a.[0]).ToString()
   let file = fst a.[0]
-  printJson "a12345" file
   Assert.AreEqual( sprintf "public class %s {\r\n    public static readonly int a = 12345;\r\n    public static readonly int b = 678;\r\n}" file.Root.Name, content )
 
 
@@ -111,7 +109,6 @@ let ``simple "let c=\"hello\"" compile works`` () =
   Assert.AreEqual( 1, a.Length )
   let content = (snd  a.[0]).ToString()
   let file = fst a.[0]
-  printJson "a12345" file
   Assert.AreEqual( sprintf "public class %s {\r\n    public static readonly string c = \"hello\";\r\n}" file.Root.Name, content )
 
 [<Test>]
@@ -123,7 +120,6 @@ let ``simple "let a=12345;;let b=a+1" compile works`` () =
   Assert.AreEqual( 1, a.Length )
   let content = (snd  a.[0]).ToString()
   let file = fst a.[0]
-  printJson "a12345" file
   Assert.AreEqual( sprintf "public class %s {\r\n    public static readonly int a = 12345;\r\n    public static readonly int b = a + 1;\r\n}" file.Root.Name, content )
 
 [<Test>]
@@ -135,54 +131,8 @@ let ``simple "let a=\"Hello\";;let b=a+\" Dolly!\"" compile works`` () =
   Assert.AreEqual( 1, a.Length )
   let content = (snd  a.[0]).ToString()
   let file = fst a.[0]
-  printJson "a12345" file
   Assert.AreEqual( sprintf "public class %s {\r\n    public static readonly string a = \"Hello\";\r\n    public static readonly string b = a + \" Dolly!\";\r\n}" file.Root.Name, content )
 
-[<Test>]
-let ``empty "()" compile generate`` () =
-  let generated = Library.generate |> Library.main [|"--code";"()"|]
-  Assert.NotNull(generated)
-  Assert.IsNotEmpty(generated)
-  let a = generated |> Seq.toArray
-  Assert.AreEqual( 1, a.Length )
-  printJson "emptybabel" a
-
-(*
-[<Test>]
-let ``simple "printfn \"Hello\"" compile works`` () =
-  let compiled = Library.main [|"--code";"printfn \"Hello\""|]
-  Assert.NotNull(compiled)
-  Assert.IsEmpty(compiled.Errors)
-  Assert.IsNotEmpty( compiled.AssemblyContents.ImplementationFiles )
-  let declarations = compiled.AssemblyContents.ImplementationFiles.Head.Declarations
-  Assert.IsNotEmpty( declarations )
-  let declaration = declarations.Head
-  match declaration with
-  | Entity(x,y) -> 
-      match y.Head with 
-      | MemberOrFunctionOrValue(a, b, c) -> Assert.AreEqual("a",a.DisplayName)
-      | _ -> Assert.Fail(sprintf "OTHER: %A" y)
-  | _ -> Assert.Fail(sprintf "OTHER: %A" declaration)
-
-[<Test>]
-let ``simple "let a=123;;printfn \"%A\" a" compile works`` () =
-  let compiled = Library.main [|"--code";"let a=123;;printfn \"%A\" a"|]
-  Assert.NotNull(compiled)
-  Assert.IsEmpty(compiled.Errors)
-  Assert.IsNotEmpty( compiled.AssemblyContents.ImplementationFiles )
-  let declarations = compiled.AssemblyContents.ImplementationFiles.Head.Declarations
-  Assert.IsNotEmpty( declarations )
-  let declaration = declarations.Head
-  match declaration with
-  | _ -> Assert.Fail(sprintf "OTHER: %A" declarations)
-
-[<Test>]
-let ``simple "let a=123;;a+1" compile works`` () =
-  let compiled = Library.main [|"--code";"let a=123;;a+1"|]
-  Assert.NotNull(compiled)
-  Assert.IsNotEmpty(compiled)
-  print "123Add1" compiled
-*)
 
 (* 
 [CompilationMapping(SourceConstructFlags.Module)]
@@ -202,18 +152,22 @@ public static class Test1
 		return b + 1;
 	}
 }
+*)
 [<Test>]
 let ``simple "let a=123;;let fac b = b+1;;fac a" compile works`` () =
-  try
-    let compiled = Library.main [|"--code";"let a=123;;let fac b = b+1;;fac a"|]
+  //try
+    let compiled = Library.compile |> Library.main [|"--code";"let a=123;;let fac b = b+1;;fac a"|]
     Assert.NotNull(compiled)
     Assert.IsNotEmpty(compiled)
-    compiled |> Seq.iter( fun p -> printCs "123Fac1" p )  
-  with
+    let a = compiled |> Seq.toArray
+    Assert.AreEqual( 1, a.Length )
+    let content = (snd  a.[0]).ToString()
+    let file = fst a.[0]
+    Assert.AreEqual( sprintf "public class %s {\r\n    public static readonly int a = 123;\r\n    public static int fac(int b) {\r\n        return b + 1;\r\n    }\r\n}" file.Root.Name, content )
+  (*with
   | ex ->
     if ex :? System.Reflection.ReflectionTypeLoadException then
       let loaderEx = ex :?> System.Reflection.ReflectionTypeLoadException
       failwith (loaderEx.LoaderExceptions |> Seq.fold ( fun acc elem -> acc + "\n" + elem.Message ) String.Empty)
     else
-      failwith ex.Message
-*)
+      failwith ex.Message*)

@@ -27,10 +27,6 @@ module Library =
     parse com checker projCode fileMask
     |> Fable2CSharp.Compiler.transformFiles com
 
-  let generate com checker projCode fileMask =
-    parse com checker projCode fileMask
-    |> Fable.Fable2Babel.Compiler.transformFiles com
-
   let main argv operation =
     let opts =
         Fable.Main.readOptions argv

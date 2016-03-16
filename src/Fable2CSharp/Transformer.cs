@@ -22,19 +22,19 @@ namespace fs2cs.Fable2CSharp
             return
             ClassDeclaration(file.Root.Name)
                             .WithModifiers(TokenList(Token(SyntaxKind.PublicKeyword)))
-                            .WithMembers(List<MemberDeclarationSyntax>( GetClassMembers(file) ));
+                            .WithMembers(List<MemberDeclarationSyntax>(GetClassMembers(file)));
         }
 
-        private CSharpSyntaxNode TransformExpression (Fable.AST.Fable.Expr expr)
+        private CSharpSyntaxNode TransformExpression(Fable.AST.Fable.Expr expr)
         {
-            if ( expr.IsValue )
+            if (expr.IsValue)
             {
                 var value = (Expr.Value)expr;
                 var kind = value.value;
-                if ( kind.IsThis )
+                if (kind.IsThis)
                 {
                     return ThisExpression();
-                } else if ( kind.IsNumberConst )
+                } else if (kind.IsNumberConst)
                 {
                     var const1 = (ValueKind.NumberConst)kind;
                     var res = (Fable.AST.U2<int, double>.Case1)const1.Item1;
@@ -46,12 +46,17 @@ namespace fs2cs.Fable2CSharp
                     return LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(memberValueStringConst.Item)); ;
 
                 }
-            } else if ( expr.IsApply )
+                else if (kind.IsIdentValue)
+                {
+                    var ident = (ValueKind.IdentValue)kind;
+                    return IdentifierName(ident.Item.name);
+                }
+            } else if (expr.IsApply)
             {
                 var apply = (Expr.Apply)expr;
                 var kind = apply.kind;
 
-                if (apply.callee.IsValue && !kind.IsApplyGet )
+                if (apply.callee.IsValue && !kind.IsApplyGet)
                 {
                     var value = (Expr.Value)apply.callee;
                     if (value.value.IsBinaryOp)
@@ -68,7 +73,7 @@ namespace fs2cs.Fable2CSharp
                     }
 
                 }
-                else if ( kind.IsApplyMeth )
+                else if (kind.IsApplyMeth)
                 {
                     var ex = TransformExpression(apply.callee);
                 }
@@ -87,9 +92,9 @@ namespace fs2cs.Fable2CSharp
             throw new NotImplementedException(expr.ToString());
         }
 
-        private SyntaxKind Typ2Type( Fable.AST.Fable.Type typ )
+        private SyntaxKind Typ2Type(Fable.AST.Fable.Type typ)
         {
-            if ( typ.IsPrimitiveType )
+            if (typ.IsPrimitiveType)
             {
                 var memberType = (Fable.AST.Fable.Type.PrimitiveType)typ;
                 if (memberType.Item.IsNumber)
@@ -115,7 +120,7 @@ namespace fs2cs.Fable2CSharp
                 return Typ2Type(memberBody.Type);
             } else if (member.Body.IsApply)
             {
-               var memberBody = (Expr.Apply)member.Body;
+                var memberBody = (Expr.Apply)member.Body;
                 return Typ2Type(memberBody.typ);
             }
             return SyntaxKind.ObjectKeyword;
@@ -124,13 +129,48 @@ namespace fs2cs.Fable2CSharp
         {
             var member = declaration.Item;
             var memberKind = member.Kind;
-            var memberKindGetter = (MemberKind.Getter)member.Kind;            
+            var memberKindGetter = (MemberKind.Getter)member.Kind;
             return Identifier(memberKindGetter.name);
+        }
+        private SyntaxToken GetMethodName(Declaration.MemberDeclaration declaration)
+        {
+            var member = declaration.Item;
+            var memberKind = member.Kind;
+            var memberKindMethod = (MemberKind.Method)member.Kind;
+            return Identifier(memberKindMethod.name);
+        }
+        private bool IsField(Declaration.MemberDeclaration declaration)
+        {
+            var member = declaration.Item;
+            var memberKind = member.Kind;
+            return memberKind.IsGetter;
+        }
+        private bool IsMethod(Declaration.MemberDeclaration declaration)
+        {
+            var member = declaration.Item;
+            var memberKind = member.Kind;
+            return memberKind.IsMethod;
         }
         private ExpressionSyntax GetFieldValue(Declaration.MemberDeclaration declaration)
         {
             var member = declaration.Item;
             return (ExpressionSyntax)TransformExpression(member.Body);
+        }
+        private SyntaxNodeOrToken[] GetMethodParameters(Declaration.MemberDeclaration declaration)
+        {
+            var member = declaration.Item;
+            var result = new List<SyntaxNodeOrToken>();
+            foreach ( var ident in member.Arguments )
+            {
+                var parameter = Parameter(Identifier(ident.name)).WithType(PredefinedType(Token(Typ2Type(ident.typ))));
+                result.Add(parameter);
+            }
+            return result.ToArray();
+        }
+        private Fable.AST.Fable.Expr GetMethodBody(Declaration.MemberDeclaration declaration)
+        {
+            var member = declaration.Item;
+            return member.Body;
         }
 
         private MemberDeclarationSyntax[] GetClassMembers(File file)
@@ -141,11 +181,27 @@ namespace fs2cs.Fable2CSharp
             {
                 if (declaration.IsMemberDeclaration)
                 {
-                    var fieldDeclaration = FieldDeclaration(VariableDeclaration(PredefinedType(Token(GetFieldType((Declaration.MemberDeclaration)declaration))))
-                        .WithVariables(SingletonSeparatedList<VariableDeclaratorSyntax>(VariableDeclarator(GetFieldName((Declaration.MemberDeclaration)declaration))
-                        .WithInitializer(EqualsValueClause(GetFieldValue((Declaration.MemberDeclaration)declaration))))))
-                        .WithModifiers(TokenList(new[] { Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword), Token(SyntaxKind.ReadOnlyKeyword) }));
-                    result.Add(fieldDeclaration);
+                    var memberDeclaration = (Declaration.MemberDeclaration)declaration;
+                    if (IsField(memberDeclaration))
+                    {
+                        var fieldDeclaration = FieldDeclaration(VariableDeclaration(PredefinedType(Token(GetFieldType(memberDeclaration))))
+                            .WithVariables(SingletonSeparatedList<VariableDeclaratorSyntax>(VariableDeclarator(GetFieldName(memberDeclaration))
+                            .WithInitializer(EqualsValueClause(GetFieldValue(memberDeclaration))))))
+                            .WithModifiers(TokenList(new[] { Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword), Token(SyntaxKind.ReadOnlyKeyword) }));
+                        result.Add(fieldDeclaration);
+                    } else if (IsMethod(memberDeclaration))
+                    {
+                        var methodDeclaration =
+                              MethodDeclaration(PredefinedType(Token(GetFieldType(memberDeclaration))), GetMethodName(memberDeclaration))
+                              .WithModifiers(TokenList(new[] { Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword) }))
+                              .WithParameterList(ParameterList(SeparatedList<ParameterSyntax>(GetMethodParameters(memberDeclaration))))
+                              .WithBody(Block(                                  
+                                  ReturnStatement(
+                                      (ExpressionSyntax)TransformExpression(GetMethodBody(memberDeclaration))                                      
+                                  )
+                              ));
+                        result.Add(methodDeclaration);
+                    }
                 }
             }
 
