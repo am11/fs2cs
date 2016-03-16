@@ -218,8 +218,9 @@ namespace fs2cs.Fable2CSharp
         }
 
 
-        private SyntaxKind Typ2Type(Fable.AST.Fable.Type typ)
+        private TypeSyntax Typ2Type(Fable.AST.Fable.Type typ, out bool isVoid)
         {
+            isVoid = false;
             if (typ.IsPrimitiveType)
             {
                 var memberType = (Fable.AST.Fable.Type.PrimitiveType)typ;
@@ -227,29 +228,48 @@ namespace fs2cs.Fable2CSharp
                 {
                     var memberTypeKind = (PrimitiveTypeKind.Number)memberType.Item;
                     var memberTypeKindItem = memberTypeKind.Item;
-                    if (memberTypeKindItem.IsInt32) return SyntaxKind.IntKeyword;
+                    if (memberTypeKindItem.IsInt32) return PredefinedType(Token(SyntaxKind.IntKeyword));
                 }
                 else if (memberType.Item.IsString)
                 {
-                    return SyntaxKind.StringKeyword;
+                    return PredefinedType(Token(SyntaxKind.StringKeyword));
                 }
+                else if (memberType.Item.IsUnit)
+                {
+                    isVoid = true;
+                    return PredefinedType(Token(SyntaxKind.VoidKeyword));
+                }
+                else if (memberType.Item.IsFunction)
+                {
+                    var memberTypeKind = (PrimitiveTypeKind.Function)memberType.Item;
+                    return GenericName(Identifier("Func"))
+                      .WithTypeArgumentList(TypeArgumentList(SeparatedList<TypeSyntax>(new SyntaxNodeOrToken[] { IdentifierName("dynamic"), Token(SyntaxKind.CommaToken), IdentifierName("dynamic") })));
+                }
+                throw new NotImplementedException(memberType.ToString());
+            } else if ( typ.IsUnknownType )
+            {
+                return IdentifierName("dynamic");
             }
-            return SyntaxKind.ObjectKeyword;
+            throw new NotImplementedException(typ.ToString());
         }
 
-        private SyntaxKind GetFieldType(Declaration.MemberDeclaration declaration)
+        private TypeSyntax GetFieldType(Declaration.MemberDeclaration declaration, out bool isVoid)
         {
             var member = declaration.Item;
             if (member.Body.IsValue)
             {
                 var memberBody = (Expr.Value)member.Body;
-                return Typ2Type(memberBody.Type);
+                return Typ2Type(memberBody.Type, out isVoid);
             } else if (member.Body.IsApply)
             {
                 var memberBody = (Expr.Apply)member.Body;
-                return Typ2Type(memberBody.typ);
+                return Typ2Type(memberBody.typ, out isVoid);
+            } else if (member.Body.IsWrapped)
+            {
+                var memberBody = (Expr.Wrapped)member.Body;
+                return Typ2Type(memberBody.Item2, out isVoid);
             }
-            return SyntaxKind.ObjectKeyword;
+            throw new NotImplementedException(declaration.ToString());
         }
         private SyntaxToken GetFieldName(Declaration.MemberDeclaration declaration)
         {
@@ -289,7 +309,8 @@ namespace fs2cs.Fable2CSharp
             var result = new List<SyntaxNodeOrToken>();
             foreach ( var ident in member.Arguments )
             {
-                var parameter = Parameter(Identifier(ident.name)).WithType(PredefinedType(Token(Typ2Type(ident.typ))));
+                bool isVoid;
+                var parameter = Parameter(Identifier(ident.name)).WithType(Typ2Type(ident.typ, out isVoid));
                 result.Add(parameter);
                 result.Add(Token(SyntaxKind.CommaToken));
             }
@@ -332,22 +353,26 @@ namespace fs2cs.Fable2CSharp
                     var memberDeclaration = (Declaration.MemberDeclaration)declaration;
                     if (IsField(memberDeclaration))
                     {
-                        var fieldDeclaration = FieldDeclaration(VariableDeclaration(PredefinedType(Token(GetFieldType(memberDeclaration))))
+                        bool isVoid;
+                        var fieldDeclaration = FieldDeclaration(VariableDeclaration(GetFieldType(memberDeclaration, out isVoid))
                             .WithVariables(SingletonSeparatedList<VariableDeclaratorSyntax>(VariableDeclarator(GetFieldName(memberDeclaration))
                             .WithInitializer(EqualsValueClause(GetFieldValue(memberDeclaration))))))
                             .WithModifiers(TokenList(new[] { Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword), Token(SyntaxKind.ReadOnlyKeyword) }));
+                        if ( isVoid ) { throw new ArgumentException("Field cannot be void"); }
                         result.Add(fieldDeclaration);
                     }
                     else if (IsMethod(memberDeclaration))
                     {
                         var parameters = GetMethodParameters(memberDeclaration);
+                        bool isVoid;
+                        var returnType = GetFieldType(memberDeclaration, out isVoid);
                         var methodDeclaration =
-                              MethodDeclaration(PredefinedType(Token(GetFieldType(memberDeclaration))), GetMethodName(memberDeclaration))
+                              MethodDeclaration(returnType, GetMethodName(memberDeclaration))
                               .WithModifiers(TokenList(new[] { Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword) }))
                               .WithParameterList(ParameterList(SeparatedList<ParameterSyntax>(parameters)))
                               .WithBody(Block(
                                   ReturnStatement(
-                                      (ExpressionSyntax)TransformExpression(GetMethodBody(memberDeclaration))
+                                      isVoid ? null : (ExpressionSyntax)TransformExpression(GetMethodBody(memberDeclaration))
                                   )
                               ));
                         result.Add(methodDeclaration);
@@ -357,13 +382,16 @@ namespace fs2cs.Fable2CSharp
                 else if (declaration.IsActionDeclaration) 
                 {
                     var actionDeclaration = (Declaration.ActionDeclaration)declaration;
-                    var expr = actionDeclaration.Item1;                    
+                    var expr = actionDeclaration.Item1;
+                    var returnExpression = (ExpressionSyntax)TransformExpression(expr);
+                    bool isVoid;
+                    var returnType = Typ2Type(expr.Type, out isVoid);
                     var methodDeclaration =
-                          MethodDeclaration(PredefinedType(Token(Typ2Type(expr.Type))), "Invoke")
+                          MethodDeclaration(returnType, "Invoke")
                           .WithModifiers(TokenList(new[] { Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword) }))
                           .WithBody(Block(
                               ReturnStatement(
-                                  (ExpressionSyntax)TransformExpression(expr)
+                                  isVoid ? null : returnExpression
                               )
                           ));
                     result.Add(methodDeclaration);

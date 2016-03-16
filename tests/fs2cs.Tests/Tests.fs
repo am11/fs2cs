@@ -75,7 +75,7 @@ let ``empty "()" compile works`` () =
   let a = compiled |> Seq.toArray
   Assert.AreEqual( 1, a.Length )
   let content = ( a.[0] |> snd ).ToString()
-  Assert.AreEqual( sprintf "public class %s {\r\n    public static object Invoke() {\r\n        return null;\r\n    }\r\n}" ( a.[0] |> fst ).Root.Name, content )
+  Assert.AreEqual( sprintf "public class %s {\r\n    public static void Invoke() {\r\n        return;\r\n    }\r\n}" ( a.[0] |> fst ).Root.Name, content )
 
 [<Test>]
 let ``simple "let a=12345" compile works`` () =
@@ -182,7 +182,7 @@ let ``simple "let dummy _ = ()" compile works`` () =
     Assert.AreEqual( 1, a.Length )
     let content = (snd  a.[0]).ToString()
     let file = fst a.[0]
-    Assert.AreEqual( sprintf "public class %s {\r\n    public static object dummy(object _arg1) {\r\n        return null;\r\n    }\r\n}" file.Root.Name, content )    
+    Assert.AreEqual( sprintf "public class %s {\r\n    public static void dummy(dynamic _arg1) {\r\n        return;\r\n    }\r\n}" file.Root.Name, content )    
 
 [<Test>]
 let ``simple "let x = 10 + 12 - 3" compile works`` () =
@@ -207,7 +207,7 @@ let ``simple "let id x = x;; let y fn b = (fn b) + 1;; y id 1" compile works`` (
     Assert.AreEqual( 1, a.Length )
     let content = (snd  a.[0]).ToString()
     let file = fst a.[0]
-    Assert.AreEqual( sprintf "public class %s {\r\n    public static object id(object x) {\r\n        return x;\r\n    }\r\n\r\n    public static int y(object fn, object b) {\r\n        return fn(b) + 1;\r\n    }\r\n\r\n    public static int Invoke() {\r\n        return y((x) => id(x), 1);\r\n    }\r\n}" file.Root.Name, content )
+    Assert.AreEqual( sprintf "public class %s {\r\n    public static dynamic id(dynamic x) {\r\n        return x;\r\n    }\r\n\r\n    public static int y(Func<dynamic, dynamic> fn, dynamic b) {\r\n        return fn(b) + 1;\r\n    }\r\n\r\n    public static int Invoke() {\r\n        return y((x) => id(x), 1);\r\n    }\r\n}" file.Root.Name, content )
 
 
 [<Test>]
