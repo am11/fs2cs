@@ -207,10 +207,11 @@ let ``simple "let id x = x;; let y fn b = (fn b) + 1;; y id 1" compile works`` (
     Assert.AreEqual( 1, a.Length )
     let content = (snd  a.[0]).ToString()
     let file = fst a.[0]
-    Assert.AreEqual( sprintf "public class %s {\r\n    public static readonly int x = 10 + 12 - 3;\r\n}" file.Root.Name, content )
+    Assert.AreEqual( sprintf "public class %s {\r\n    public static object id(object x) {\r\n        return x;\r\n    }\r\n\r\n    public static int y(object fn, object b) {\r\n        return fn(b) + 1;\r\n    }\r\n\r\n    public static int Invoke() {\r\n        return y((x) => id(x), 1);\r\n    }\r\n}" file.Root.Name, content )
 
 
 [<Test>]
+[<Ignore>]
 let ``complex fsx test`` () =
   //try
     let compiled = Library.compile |> Library.main [|"--projFile";"../../test.fsx"|]

@@ -137,9 +137,19 @@ namespace fs2cs.Fable2CSharp
                     else if (value.value.IsIdentValue)
                     {
                         var ident = (ValueKind.IdentValue)value.value;
+                        if (kind.IsApplyMeth)
+                        {
+                            var ex = (ExpressionSyntax)TransformExpression(apply.callee);
+                            return
+                                InvocationExpression(ex)
+                                .WithArgumentList(ArgumentList(SeparatedList<ArgumentSyntax>(
+                                    GetMethodArguments(apply.args.ToArray())
+                                )));
+                        }
+                        /*
                         return
                             LocalDeclarationStatement(VariableDeclaration(IdentifierName("var"))
-                            .WithVariables(SingletonSeparatedList<VariableDeclaratorSyntax>(VariableDeclarator(Identifier(ident.Item.name)))));
+                            .WithVariables(SingletonSeparatedList<VariableDeclaratorSyntax>(VariableDeclarator(Identifier(ident.Item.name)))));*/
                     }
                     else
                     {
