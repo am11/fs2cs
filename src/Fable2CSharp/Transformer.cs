@@ -255,6 +255,7 @@ namespace fs2cs.Fable2CSharp
 
         private TypeSyntax GetFieldType(Declaration.MemberDeclaration declaration, out bool isVoid)
         {
+            isVoid = false;
             var member = declaration.Item;
             if (member.Body.IsValue)
             {
@@ -268,6 +269,11 @@ namespace fs2cs.Fable2CSharp
             {
                 var memberBody = (Expr.Wrapped)member.Body;
                 return Typ2Type(memberBody.Item2, out isVoid);
+            }
+            else if (member.Body.IsSequential)
+            {
+                var memberBody = (Expr.Sequential)member.Body;
+                return IdentifierName("dynamic");
             }
             throw new NotImplementedException(declaration.ToString());
         }
