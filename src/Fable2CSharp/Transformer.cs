@@ -56,6 +56,38 @@ namespace fs2cs.Fable2CSharp
                 {
                     return LiteralExpression(SyntaxKind.NullLiteralExpression);
                 }
+                else if (kind.IsArrayConst)
+                {
+                    var arrayConst = (ValueKind.ArrayConst)kind;
+                    if (arrayConst.kind.IsTuple)
+                    {
+                        var ack = arrayConst.Item1;
+                        if (ack.IsArrayValues)
+                        {
+                            return
+                                ArrayCreationExpression(ArrayType(PredefinedType(Token(SyntaxKind.ObjectKeyword))).
+                                WithRankSpecifiers(SingletonList<ArrayRankSpecifierSyntax>(
+                                    ArrayRankSpecifier(SingletonSeparatedList<ExpressionSyntax>(OmittedArraySizeExpression())))))
+                                .WithInitializer(InitializerExpression(SyntaxKind.ArrayInitializerExpression, SeparatedList<ExpressionSyntax>(new SyntaxNodeOrToken[] { LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(1)), Token(SyntaxKind.CommaToken), LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(2)) })));
+                        } else
+                            Console.WriteLine(ack.ToString());
+                    } else
+                    {
+                        Console.WriteLine(arrayConst.kind.ToString());
+                    }
+                }
+                else if (kind.IsEmit)
+                {
+                    var emit = (ValueKind.Emit)kind;
+                    return Block(SingletonList<StatementSyntax>(ExpressionStatement(IdentifierName(emit.Item))));
+                }
+                else if (kind.IsLambda)
+                {
+                    var lambda = (ValueKind.Lambda)kind;
+                    return
+                        ParenthesizedLambdaExpression(TransformExpression(lambda.body))
+                        .WithParameterList(ParameterList(SeparatedList<ParameterSyntax>(GetLambdaParameters(lambda.args.ToArray()))));
+                }
                 else
                 {
                     Console.WriteLine(kind.ToString());
@@ -79,6 +111,39 @@ namespace fs2cs.Fable2CSharp
                             var rightES = (ExpressionSyntax)TransformExpression(right);
                             return BinaryExpression(SyntaxKind.AddExpression, leftES, rightES);
                         }
+                        else if (op.Item.IsBinaryMinus)
+                        {
+                            var leftES = (ExpressionSyntax)TransformExpression(left);
+                            var rightES = (ExpressionSyntax)TransformExpression(right);
+                            return BinaryExpression(SyntaxKind.SubtractExpression, leftES, rightES);
+                        }
+                        else if (op.Item.IsBinaryMultiply)
+                        {
+                            var leftES = (ExpressionSyntax)TransformExpression(left);
+                            var rightES = (ExpressionSyntax)TransformExpression(right);
+                            return BinaryExpression(SyntaxKind.MultiplyExpression, leftES, rightES);
+                        }
+                        else
+                        {
+                            Console.WriteLine(kind.ToString());
+                        }
+                    } else if (value.value.IsLambda)
+                    {
+                        var lambda = (ValueKind.Lambda)value.value;                        
+                        return
+                            ParenthesizedLambdaExpression(TransformExpression(lambda.body))
+                            .WithParameterList(ParameterList(SeparatedList<ParameterSyntax>(GetLambdaParameters(lambda.args.ToArray()))));
+                    }
+                    else if (value.value.IsIdentValue)
+                    {
+                        var ident = (ValueKind.IdentValue)value.value;
+                        return
+                            LocalDeclarationStatement(VariableDeclaration(IdentifierName("var"))
+                            .WithVariables(SingletonSeparatedList<VariableDeclaratorSyntax>(VariableDeclarator(Identifier(ident.Item.name)))));
+                    }
+                    else
+                    {
+                        Console.WriteLine(kind.ToString());
                     }
 
                 }
@@ -107,9 +172,41 @@ namespace fs2cs.Fable2CSharp
                 var wrapped = (Expr.Wrapped)expr;
                 return TransformExpression(wrapped.Item1);
             }
+            else if (expr.IsSequential)
+            {
+                var sequential = (Expr.Sequential)expr;
+                var result = List<StatementSyntax>();
+                foreach ( var expr1 in sequential.Item1)
+                {
+                    var transf = TransformExpression(expr1);
+                    result.Add((StatementSyntax)transf);
+                }
+                return Block(result);
+            } else if ( expr.IsVarDeclaration )
+            {
+                var varDeclaration = (Expr.VarDeclaration)expr;
+                return 
+                    LocalDeclarationStatement(VariableDeclaration(IdentifierName("var"))
+                    .WithVariables(SingletonSeparatedList<VariableDeclaratorSyntax>(
+                        VariableDeclarator(Identifier(varDeclaration.var.name))
+                        .WithInitializer(EqualsValueClause( (ExpressionSyntax)TransformExpression(varDeclaration.value) )))));
+            }
 
             throw new NotImplementedException(expr.ToString());
         }
+
+        private SyntaxNodeOrToken[] GetLambdaParameters(Ident[] idents)
+        {
+            var result = new List<SyntaxNodeOrToken>();
+            foreach (var ident in idents)
+            {
+                var parameter = Parameter(Identifier(ident.name));
+                result.Add(parameter);
+                result.Add(Token(SyntaxKind.CommaToken));
+            }
+            return result.Take(result.Count - 1).ToArray();
+        }
+
 
         private SyntaxKind Typ2Type(Fable.AST.Fable.Type typ)
         {
@@ -193,8 +290,15 @@ namespace fs2cs.Fable2CSharp
             var result = new List<SyntaxNodeOrToken>();
             foreach (var argument in arguments)
             {
-                var parameter = Argument( (ExpressionSyntax) TransformExpression(argument) );
-                result.Add(parameter);
+                var argVal = TransformExpression(argument);
+                if (argVal is ExpressionSyntax)
+                {
+                    var parameter = Argument((ExpressionSyntax)argVal);
+                    result.Add(parameter);
+                } else
+                {
+                    //result.Add(argVal);
+                }
                 result.Add(Token(SyntaxKind.CommaToken));
             }
             return result.Take(result.Count-1).ToArray();

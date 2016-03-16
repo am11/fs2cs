@@ -182,4 +182,28 @@ let ``simple "let dummy _ = ()" compile works`` () =
     Assert.AreEqual( 1, a.Length )
     let content = (snd  a.[0]).ToString()
     let file = fst a.[0]
-    Assert.AreEqual( sprintf "public class %s {\r\n    public static object dummy(object _arg1) {\r\n        return null;\r\n    }\r\n}" file.Root.Name, content )
+    Assert.AreEqual( sprintf "public class %s {\r\n    public static object dummy(object _arg1) {\r\n        return null;\r\n    }\r\n}" file.Root.Name, content )    
+
+[<Test>]
+let ``simple "let x = 10 + 12 - 3" compile works`` () =
+  //try
+    let compiled = Library.compile |> Library.main [|"--code";"let x = 10 + 12 - 3"|]
+    Assert.NotNull(compiled)
+    Assert.IsNotEmpty(compiled)
+    let a = compiled |> Seq.toArray
+    Assert.AreEqual( 1, a.Length )
+    let content = (snd  a.[0]).ToString()
+    let file = fst a.[0]
+    Assert.AreEqual( sprintf "public class %s {\r\n    public static readonly int x = 10 + 12 - 3;\r\n}" file.Root.Name, content )
+
+[<Test>]
+let ``complex fsx test`` () =
+  //try
+    let compiled = Library.compile |> Library.main [|"--projFile";"../../test.fsx"|]
+    Assert.NotNull(compiled)
+    Assert.IsNotEmpty(compiled)
+    let a = compiled |> Seq.toArray
+    Assert.AreEqual( 1, a.Length )
+    let content = (snd  a.[0]).ToString()
+    let file = fst a.[0]
+    Assert.AreEqual( sprintf "public class %s {\r\n    public static readonly int x = 10 + 12 - 3;\r\n}" file.Root.Name, content )

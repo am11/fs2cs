@@ -17,11 +17,11 @@ module Library =
   open Microsoft.FSharp.Compiler.SourceCodeServices
 
   let parse com checker projCode fileMask =
-    try
+    //try
         Fable.Main.parseFSharpProject com checker projCode
         |> Fable.FSharp2Fable.Compiler.transformFiles com fileMask
-    with ex ->
-        failwith ex.Message
+    (*with ex ->
+        failwith ex.Message*)
 
   let compile com checker projCode fileMask =
     parse com checker projCode fileMask
