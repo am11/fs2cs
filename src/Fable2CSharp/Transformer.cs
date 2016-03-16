@@ -34,7 +34,8 @@ namespace fs2cs.Fable2CSharp
                 if (kind.IsThis)
                 {
                     return ThisExpression();
-                } else if (kind.IsNumberConst)
+                }
+                else if (kind.IsNumberConst)
                 {
                     var const1 = (ValueKind.NumberConst)kind;
                     var res = (Fable.AST.U2<int, double>.Case1)const1.Item1;
@@ -50,6 +51,15 @@ namespace fs2cs.Fable2CSharp
                 {
                     var ident = (ValueKind.IdentValue)kind;
                     return IdentifierName(ident.Item.name);
+                }
+                else if (kind.IsNull)
+                {
+                    var ident = (ValueKind.IdentValue)kind;
+                    return LiteralExpression(SyntaxKind.NullLiteralExpression); // TODO : make sure it works
+                }
+                else
+                {
+                    Console.WriteLine(kind.ToString());
                 }
             } else if (expr.IsApply)
             {
@@ -75,7 +85,12 @@ namespace fs2cs.Fable2CSharp
                 }
                 else if (kind.IsApplyMeth)
                 {
-                    var ex = TransformExpression(apply.callee);
+                    var ex = (ExpressionSyntax)TransformExpression(apply.callee);
+                    return
+                        InvocationExpression(ex)
+                        .WithArgumentList(ArgumentList(SeparatedList<ArgumentSyntax>(
+                            GetMethodArguments(apply.args.ToArray())
+                        )));
                 }
                 else if (kind.IsApplyGet)
                 {
@@ -83,10 +98,15 @@ namespace fs2cs.Fable2CSharp
                     var ex = (LiteralExpressionSyntax)TransformExpression(left);
                     var token = ex.Token;
                     return IdentifierName(token.ValueText);
+                } else
+                {
+                    Console.WriteLine(kind.ToString());
                 }
-
-
-                Console.WriteLine(apply.ToString());
+            }
+            else if ( expr.IsWrapped )
+            {
+                var wrapped = (Expr.Wrapped)expr;
+                return TransformExpression(wrapped.Item1);
             }
 
             throw new NotImplementedException(expr.ToString());
@@ -151,6 +171,7 @@ namespace fs2cs.Fable2CSharp
             var memberKind = member.Kind;
             return memberKind.IsMethod;
         }
+       
         private ExpressionSyntax GetFieldValue(Declaration.MemberDeclaration declaration)
         {
             var member = declaration.Item;
@@ -167,6 +188,19 @@ namespace fs2cs.Fable2CSharp
             }
             return result.ToArray();
         }
+        private SyntaxNodeOrToken[] GetMethodArguments(Expr[] arguments)
+        {
+            //return new SyntaxNodeOrToken[] { Argument(IdentifierName("a")), Token(SyntaxKind.CommaToken), Argument(IdentifierName("b")) };
+            var result = new List<SyntaxNodeOrToken>();
+            foreach (var argument in arguments)
+            {
+                var parameter = Argument( (ExpressionSyntax) TransformExpression(argument) );
+                result.Add(parameter);
+                result.Add(Token(SyntaxKind.CommaToken));
+            }
+            return result.Take(result.Count-1).ToArray();
+        }
+
         private Fable.AST.Fable.Expr GetMethodBody(Declaration.MemberDeclaration declaration)
         {
             var member = declaration.Item;
@@ -189,20 +223,37 @@ namespace fs2cs.Fable2CSharp
                             .WithInitializer(EqualsValueClause(GetFieldValue(memberDeclaration))))))
                             .WithModifiers(TokenList(new[] { Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword), Token(SyntaxKind.ReadOnlyKeyword) }));
                         result.Add(fieldDeclaration);
-                    } else if (IsMethod(memberDeclaration))
+                    }
+                    else if (IsMethod(memberDeclaration))
                     {
                         var methodDeclaration =
                               MethodDeclaration(PredefinedType(Token(GetFieldType(memberDeclaration))), GetMethodName(memberDeclaration))
                               .WithModifiers(TokenList(new[] { Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword) }))
                               .WithParameterList(ParameterList(SeparatedList<ParameterSyntax>(GetMethodParameters(memberDeclaration))))
-                              .WithBody(Block(                                  
+                              .WithBody(Block(
                                   ReturnStatement(
-                                      (ExpressionSyntax)TransformExpression(GetMethodBody(memberDeclaration))                                      
+                                      (ExpressionSyntax)TransformExpression(GetMethodBody(memberDeclaration))
                                   )
                               ));
                         result.Add(methodDeclaration);
                     }
+                    else throw new NotImplementedException(memberDeclaration.ToString());
                 }
+                else if (declaration.IsActionDeclaration) 
+                {
+                    var actionDeclaration = (Declaration.ActionDeclaration)declaration;
+                    var expr = actionDeclaration.Item1;                    
+                    var methodDeclaration =
+                          MethodDeclaration(PredefinedType(Token(Typ2Type(expr.Type))), "Invoke")
+                          .WithModifiers(TokenList(new[] { Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword) }))
+                          .WithBody(Block(
+                              ReturnStatement(
+                                  (ExpressionSyntax)TransformExpression(expr)
+                              )
+                          ));
+                    result.Add(methodDeclaration);
+                }
+                else throw new NotImplementedException(declaration.ToString());
             }
 
             return result.ToArray();

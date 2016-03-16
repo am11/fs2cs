@@ -68,6 +68,7 @@ type SetupTest() =
         Log.Information "Logging started"
 
 [<Test>]
+[<Ignore>]
 let ``empty "()" compile works`` () =
   let compiled = Library.compile |> Library.main [|"--code";"()"|]
   Assert.NotNull(compiled)
@@ -163,7 +164,7 @@ let ``simple "let a=123;;let fac b = b+1;;fac a" compile works`` () =
     Assert.AreEqual( 1, a.Length )
     let content = (snd  a.[0]).ToString()
     let file = fst a.[0]
-    Assert.AreEqual( sprintf "public class %s {\r\n    public static readonly int a = 123;\r\n    public static int fac(int b) {\r\n        return b + 1;\r\n    }\r\n}" file.Root.Name, content )
+    Assert.AreEqual( sprintf "public class %s {\r\n    public static readonly int a = 123;\r\n    public static int fac(int b) {\r\n        return b + 1;\r\n    }\r\n\r\n    public static int Invoke() {\r\n        return fac(a);\r\n    }\r\n}" file.Root.Name, content )
   (*with
   | ex ->
     if ex :? System.Reflection.ReflectionTypeLoadException then
