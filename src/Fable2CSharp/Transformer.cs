@@ -54,8 +54,7 @@ namespace fs2cs.Fable2CSharp
                 }
                 else if (kind.IsNull)
                 {
-                    var ident = (ValueKind.IdentValue)kind;
-                    return LiteralExpression(SyntaxKind.NullLiteralExpression); // TODO : make sure it works
+                    return LiteralExpression(SyntaxKind.NullLiteralExpression);
                 }
                 else
                 {

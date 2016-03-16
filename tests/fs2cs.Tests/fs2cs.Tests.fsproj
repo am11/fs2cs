@@ -66,6 +66,7 @@
     <Compile Include="Tests.fs" />
     <None Include="paket.references" />
     <Content Include="App.config" />
+    <None Include="test.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Fable">

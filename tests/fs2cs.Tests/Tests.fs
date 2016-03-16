@@ -68,7 +68,6 @@ type SetupTest() =
         Log.Information "Logging started"
 
 [<Test>]
-[<Ignore>]
 let ``empty "()" compile works`` () =
   let compiled = Library.compile |> Library.main [|"--code";"()"|]
   Assert.NotNull(compiled)
@@ -76,7 +75,7 @@ let ``empty "()" compile works`` () =
   let a = compiled |> Seq.toArray
   Assert.AreEqual( 1, a.Length )
   let content = ( a.[0] |> snd ).ToString()
-  Assert.AreEqual( sprintf "public class %s {\r\n}" ( a.[0] |> fst ).Root.Name, content )
+  Assert.AreEqual( sprintf "public class %s {\r\n    public static object Invoke() {\r\n        return null;\r\n    }\r\n}" ( a.[0] |> fst ).Root.Name, content )
 
 [<Test>]
 let ``simple "let a=12345" compile works`` () =
@@ -172,3 +171,15 @@ let ``simple "let a=123;;let fac b = b+1;;fac a" compile works`` () =
       failwith (loaderEx.LoaderExceptions |> Seq.fold ( fun acc elem -> acc + "\n" + elem.Message ) String.Empty)
     else
       failwith ex.Message*)
+
+[<Test>]
+let ``simple "let dummy _ = ()" compile works`` () =
+  //try
+    let compiled = Library.compile |> Library.main [|"--code";"let dummy _ = ()"|]
+    Assert.NotNull(compiled)
+    Assert.IsNotEmpty(compiled)
+    let a = compiled |> Seq.toArray
+    Assert.AreEqual( 1, a.Length )
+    let content = (snd  a.[0]).ToString()
+    let file = fst a.[0]
+    Assert.AreEqual( sprintf "public class %s {\r\n    public static object dummy(object _arg1) {\r\n        return null;\r\n    }\r\n}" file.Root.Name, content )
