@@ -1,3 +1,13 @@
+group Build
+FSharp.Compiler.Service
+FSharp.Compiler.Service.ProjectCracker
+Logary
+Destructurama.FSharp
+Microsoft.CodeAnalysis.CSharp
+Microsoft.CodeAnalysis.CSharp.Workspaces
+
 group Test
 NUnit
 NUnit.Runners
+Newtonsoft.Json
+Microsoft.Composition
