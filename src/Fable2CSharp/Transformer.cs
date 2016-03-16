@@ -281,8 +281,9 @@ namespace fs2cs.Fable2CSharp
             {
                 var parameter = Parameter(Identifier(ident.name)).WithType(PredefinedType(Token(Typ2Type(ident.typ))));
                 result.Add(parameter);
+                result.Add(Token(SyntaxKind.CommaToken));
             }
-            return result.ToArray();
+            return result.Take(result.Count - 1).ToArray();
         }
         private SyntaxNodeOrToken[] GetMethodArguments(Expr[] arguments)
         {
@@ -329,10 +330,11 @@ namespace fs2cs.Fable2CSharp
                     }
                     else if (IsMethod(memberDeclaration))
                     {
+                        var parameters = GetMethodParameters(memberDeclaration);
                         var methodDeclaration =
                               MethodDeclaration(PredefinedType(Token(GetFieldType(memberDeclaration))), GetMethodName(memberDeclaration))
                               .WithModifiers(TokenList(new[] { Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword) }))
-                              .WithParameterList(ParameterList(SeparatedList<ParameterSyntax>(GetMethodParameters(memberDeclaration))))
+                              .WithParameterList(ParameterList(SeparatedList<ParameterSyntax>(parameters)))
                               .WithBody(Block(
                                   ReturnStatement(
                                       (ExpressionSyntax)TransformExpression(GetMethodBody(memberDeclaration))

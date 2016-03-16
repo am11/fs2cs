@@ -196,6 +196,20 @@ let ``simple "let x = 10 + 12 - 3" compile works`` () =
     let file = fst a.[0]
     Assert.AreEqual( sprintf "public class %s {\r\n    public static readonly int x = 10 + 12 - 3;\r\n}" file.Root.Name, content )
 
+
+[<Test>]
+let ``simple "let id x = x;; let y fn b = (fn b) + 1;; y id 1" compile works`` () =
+  //try
+    let compiled = Library.compile |> Library.main [|"--code";"let id x = x;; let y fn b = (fn b) + 1;; y id 1"|]
+    Assert.NotNull(compiled)
+    Assert.IsNotEmpty(compiled)
+    let a = compiled |> Seq.toArray
+    Assert.AreEqual( 1, a.Length )
+    let content = (snd  a.[0]).ToString()
+    let file = fst a.[0]
+    Assert.AreEqual( sprintf "public class %s {\r\n    public static readonly int x = 10 + 12 - 3;\r\n}" file.Root.Name, content )
+
+
 [<Test>]
 let ``complex fsx test`` () =
   //try
@@ -207,3 +221,16 @@ let ``complex fsx test`` () =
     let content = (snd  a.[0]).ToString()
     let file = fst a.[0]
     Assert.AreEqual( sprintf "public class %s {\r\n    public static readonly int x = 10 + 12 - 3;\r\n}" file.Root.Name, content )
+
+[<Test>]
+let ``simple "let add a b = a + b" compile works`` () =
+  //try
+    let compiled = Library.compile |> Library.main [|"--code";"let add a b = a + b"|]
+    Assert.NotNull(compiled)
+    Assert.IsNotEmpty(compiled)
+    let a = compiled |> Seq.toArray
+    Assert.AreEqual( 1, a.Length )
+    let content = (snd  a.[0]).ToString()
+    let file = fst a.[0]
+    Assert.AreEqual( sprintf "public class %s {\r\n    public static int add(int a, int b) {\r\n        return a + b;\r\n    }\r\n}" file.Root.Name, content )    
+
