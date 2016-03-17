@@ -69,17 +69,18 @@ type SetupTest() =
 
 [<Test>]
 let ``empty "()" compile works`` () =
-  let compiled = Library.compile |> Library.main [|"--code";"()"|]
+  let compiled =  Library.main [|"--projFile";"../../test1.fsx"|]
   Assert.NotNull(compiled)
   Assert.IsNotEmpty(compiled)
   let a = compiled |> Seq.toArray
   Assert.AreEqual( 1, a.Length )
   let content = ( a.[0] |> snd ).ToString()
-  Assert.AreEqual( sprintf "public class %s {\r\n    public static void Invoke() {\r\n        return;\r\n    }\r\n}" ( a.[0] |> fst ).Root.Name, content )
+  let csharp = File.ReadAllText( "../../test1.cs" )
+  Assert.AreEqual( csharp, content )
 
 [<Test>]
 let ``simple "let a=12345" compile works`` () =
-  let compiled = Library.compile |> Library.main [|"--code";"let a=12345"|]
+  let compiled = Library.main [|"--projFile";"../../test2.fsx"|]
   Assert.NotNull(compiled)
   Assert.IsNotEmpty(compiled)
   let a = compiled |> Seq.toArray
@@ -90,7 +91,7 @@ let ``simple "let a=12345" compile works`` () =
 
 [<Test>]
 let ``simple "let a=12345;;let b=678" compile works`` () =
-  let compiled = Library.compile |> Library.main [|"--code";"let a=12345;;let b=678"|]
+  let compiled = Library.main [|"--projFile";"../../test3.fsx"|]
   Assert.NotNull(compiled)
   Assert.IsNotEmpty(compiled)
   let a = compiled |> Seq.toArray
@@ -102,7 +103,7 @@ let ``simple "let a=12345;;let b=678" compile works`` () =
 
 [<Test>]
 let ``simple "let c=\"hello\"" compile works`` () =
-  let compiled = Library.compile |> Library.main [|"--code";"let c=\"hello\""|]
+  let compiled = Library.main [|"--projFile";"../../test4.fsx"|]
   Assert.NotNull(compiled)
   Assert.IsNotEmpty(compiled)
   let a = compiled |> Seq.toArray
@@ -113,7 +114,7 @@ let ``simple "let c=\"hello\"" compile works`` () =
 
 [<Test>]
 let ``simple "let a=12345;;let b=a+1" compile works`` () =
-  let compiled = Library.compile |> Library.main [|"--code";"let a=12345;;let b=a+1"|]
+  let compiled = Library.main [|"--projFile";"../../test5.fsx"|]
   Assert.NotNull(compiled)
   Assert.IsNotEmpty(compiled)
   let a = compiled |> Seq.toArray
@@ -124,7 +125,7 @@ let ``simple "let a=12345;;let b=a+1" compile works`` () =
 
 [<Test>]
 let ``simple "let a=\"Hello\";;let b=a+\" Dolly!\"" compile works`` () =
-  let compiled = Library.compile |> Library.main [|"--code";"let a=\"Hello\";;let b=a+\" Dolly!\""|]
+  let compiled = Library.main [|"--projFile";"../../test6.fsx"|]
   Assert.NotNull(compiled)
   Assert.IsNotEmpty(compiled)
   let a = compiled |> Seq.toArray
@@ -156,7 +157,7 @@ public static class Test1
 [<Test>]
 let ``simple "let a=123;;let fac b = b+1;;fac a" compile works`` () =
   //try
-    let compiled = Library.compile |> Library.main [|"--code";"let a=123;;let fac b = b+1;;fac a"|]
+    let compiled = Library.main [|"--code";"let a=123;;let fac b = b+1;;fac a"|]
     Assert.NotNull(compiled)
     Assert.IsNotEmpty(compiled)
     let a = compiled |> Seq.toArray
@@ -175,7 +176,7 @@ let ``simple "let a=123;;let fac b = b+1;;fac a" compile works`` () =
 [<Test>]
 let ``simple "let dummy _ = ()" compile works`` () =
   //try
-    let compiled = Library.compile |> Library.main [|"--code";"let dummy _ = ()"|]
+    let compiled = Library.main [|"--code";"let dummy _ = ()"|]
     Assert.NotNull(compiled)
     Assert.IsNotEmpty(compiled)
     let a = compiled |> Seq.toArray
@@ -187,7 +188,7 @@ let ``simple "let dummy _ = ()" compile works`` () =
 [<Test>]
 let ``simple "let x = 10 + 12 - 3" compile works`` () =
   //try
-    let compiled = Library.compile |> Library.main [|"--code";"let x = 10 + 12 - 3"|]
+    let compiled = Library.main [|"--code";"let x = 10 + 12 - 3"|]
     Assert.NotNull(compiled)
     Assert.IsNotEmpty(compiled)
     let a = compiled |> Seq.toArray
@@ -200,7 +201,7 @@ let ``simple "let x = 10 + 12 - 3" compile works`` () =
 [<Test>]
 let ``simple "let id x = x;; let y fn b = (fn b) + 1;; y id 1" compile works`` () =
   //try
-    let compiled = Library.compile |> Library.main [|"--code";"let id x = x;; let y fn b = (fn b) + 1;; y id 1"|]
+    let compiled = Library.main [|"--code";"let id x = x;; let y fn b = (fn b) + 1;; y id 1"|]
     Assert.NotNull(compiled)
     Assert.IsNotEmpty(compiled)
     let a = compiled |> Seq.toArray
@@ -214,7 +215,7 @@ let ``simple "let id x = x;; let y fn b = (fn b) + 1;; y id 1" compile works`` (
 [<Ignore>]
 let ``complex fsx test`` () =
   //try
-    let compiled = Library.compile |> Library.main [|"--projFile";"../../test.fsx"|]
+    let compiled = Library.main [|"--projFile";"../../test.fsx"|]
     Assert.NotNull(compiled)
     Assert.IsNotEmpty(compiled)
     let a = compiled |> Seq.toArray
@@ -226,7 +227,7 @@ let ``complex fsx test`` () =
 [<Test>]
 let ``simple "let add a b = a + b" compile works`` () =
   //try
-    let compiled = Library.compile |> Library.main [|"--code";"let add a b = a + b"|]
+    let compiled = Library.main [|"--code";"let add a b = a + b"|]
     Assert.NotNull(compiled)
     Assert.IsNotEmpty(compiled)
     let a = compiled |> Seq.toArray
@@ -239,7 +240,7 @@ let ``simple "let add a b = a + b" compile works`` () =
 [<Ignore>]
 let ``simple "printf \"%A\" 5" compile works`` () =
   //try
-    let compiled = Library.compile |> Library.main [|"--code";"printf \"%A\" 5"|]
+    let compiled = Library.main [|"--code";"printf \"%A\" 5"|]
     Assert.NotNull(compiled)
     Assert.IsNotEmpty(compiled)
     let a = compiled |> Seq.toArray
@@ -251,7 +252,7 @@ let ``simple "printf \"%A\" 5" compile works`` () =
 [<Test>]
 let ``simple "let a = System.Math.Abs(-5);;a" compile works`` () =
   //try
-    let compiled = Library.compile |> Library.main [|"--code";"let a = System.Math.Abs(-5);;a"|]
+    let compiled = Library.main [|"--code";"let a = System.Math.Abs(-5);;a"|]
     Assert.NotNull(compiled)
     Assert.IsNotEmpty(compiled)
     let a = compiled |> Seq.toArray
