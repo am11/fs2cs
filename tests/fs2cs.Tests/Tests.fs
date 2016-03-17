@@ -68,15 +68,20 @@ type SetupTest() =
         Log.Information "Logging started"
 
 [<Test>]
-let ``empty "()" compile works`` () =
-  let compiled =  Library.main [|"--projFile";"../../test1.fsx"|]
-  Assert.NotNull(compiled)
-  Assert.IsNotEmpty(compiled)
-  let a = compiled |> Seq.toArray
-  Assert.AreEqual( 1, a.Length )
-  let content = ( a.[0] |> snd ).ToString()
-  let csharp = File.ReadAllText( "../../test1.cs" )
-  Assert.AreEqual( csharp, content )
+let ``tests works`` () =
+  Directory.GetFiles( "../../" ) 
+  |> Seq.filter( fun p -> p.StartsWith("test") && p.EndsWith(".fsx") ) 
+  |> Seq.iter( fun source ->
+    let compiled =  Library.main [|"--projFile";source|]
+    Assert.NotNull(compiled)
+    Assert.IsNotEmpty(compiled)
+    let a = compiled |> Seq.toArray
+    Assert.AreEqual( 1, a.Length )
+    let content = ( a.[0] |> snd ).ToString()
+    let csharp = File.ReadAllText( Path.ChangeExtension( source, ".cs" ) )
+    Assert.AreEqual( csharp, content )  
+  )
+
 
 [<Test>]
 let ``simple "let a=12345" compile works`` () =

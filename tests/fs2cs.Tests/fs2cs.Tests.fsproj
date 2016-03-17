@@ -64,16 +64,18 @@
   <Import Project="..\..\.paket\paket.targets" />
   <ItemGroup>
     <Compile Include="Tests.fs" />
+    <None Include="test1.fsx" />
     <None Include="test1.cs" />
-    <None Include="test6.fsx" />
-    <None Include="paket.references" />
-    <Content Include="App.config" />
-    <None Include="test.fsx" />
     <None Include="test2.fsx" />
-    <None Include="test3.fsx" />
+    <None Include="test2.cs" />
+    <None Include="test3.cs" />
+    <None Include="complex.fsx" />
     <None Include="test4.fsx" />
     <None Include="test5.fsx" />
-    <None Include="test1.fsx" />
+    <None Include="test6.fsx" />
+    <Content Include="App.config" />
+    <None Include="paket.references" />
+    <None Include="test3.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Fable">
