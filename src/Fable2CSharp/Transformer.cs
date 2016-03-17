@@ -242,8 +242,17 @@ namespace fs2cs.Fable2CSharp
                 else if (memberType.Item.IsFunction)
                 {
                     var memberTypeKind = (PrimitiveTypeKind.Function)memberType.Item;
+                    SyntaxNodeOrTokenList pars = new SyntaxNodeOrTokenList();
+                    for (int i = 0; i <= memberTypeKind.arity; i++)
+                    {
+                        pars = pars.Add(IdentifierName("dynamic"));
+                        pars = pars.Add(Token(SyntaxKind.CommaToken));
+                    }
+                    pars = pars.RemoveAt(pars.Count - 1);
+                    //TODO Arity
                     return GenericName(Identifier("Func"))
-                      .WithTypeArgumentList(TypeArgumentList(SeparatedList<TypeSyntax>(new SyntaxNodeOrToken[] { IdentifierName("dynamic"), Token(SyntaxKind.CommaToken), IdentifierName("dynamic") })));
+                      .WithTypeArgumentList(TypeArgumentList(SeparatedList<TypeSyntax>(
+                            pars)));
                 }
                 throw new NotImplementedException(memberType.ToString());
             } else if ( typ.IsUnknownType )

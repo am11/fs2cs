@@ -196,6 +196,17 @@ let ``simple "let x = 10 + 12 - 3" compile works`` () =
     let file = fst a.[0]
     Assert.AreEqual( sprintf "public class %s {\r\n    public static readonly int x = 10 + 12 - 3;\r\n}" file.Root.Name, content )
 
+[<Test>]
+let ``simple "let id x y = x;; let y fn a b = (fn a b) + 1;; y id 2 3" compile works`` () =
+  //try
+    let compiled = Library.compile |> Library.main [|"--code";"let id x y = x;; let y fn a b = (fn a b) + 1;; y id 2 3"|]
+    Assert.NotNull(compiled)
+    Assert.IsNotEmpty(compiled)
+    let a = compiled |> Seq.toArray
+    Assert.AreEqual( 1, a.Length )
+    let content = (snd  a.[0]).ToString()
+    let file = fst a.[0]
+    Assert.AreEqual( sprintf "public class %s {\r\n    public static dynamic id(dynamic x, dynamic y) {\r\n        return x;\r\n    }\r\n\r\n    public static int y(Func<dynamic, dynamic, dynamic> fn, dynamic a, dynamic b) {\r\n        return fn(a)(b) + 1;\r\n    }\r\n\r\n    public static int Invoke() {\r\n        return y((x, y) => id(x, y), 2, 3);\r\n    }\r\n}" file.Root.Name, content )
 
 [<Test>]
 let ``simple "let id x = x;; let y fn b = (fn b) + 1;; y id 1" compile works`` () =
