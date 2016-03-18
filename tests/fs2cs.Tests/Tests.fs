@@ -87,7 +87,7 @@ let ``tests works`` () =
 [<Ignore>]
 let ``complex fsx test`` () =
   //try
-    let compiled = Library.main [|"--projFile";"../../test.fsx"|]
+    let compiled = Library.main [|"--projFile";"../../complex.fsx"|]
     Assert.NotNull(compiled)
     Assert.IsNotEmpty(compiled)
     let a = compiled |> Seq.toArray
