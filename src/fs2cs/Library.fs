@@ -15,28 +15,26 @@ module Library =
   open Microsoft.FSharp.Compiler
   open Microsoft.FSharp.Compiler.Ast
   open Microsoft.FSharp.Compiler.SourceCodeServices
+  open Fable.Main
+  open Fable
 
-  let parse com checker projCode fileMask =
-    //try
-        Fable.Main.parseFSharpProject com checker projCode
-        |> Fable.FSharp2Fable.Compiler.transformFiles com fileMask
-    (*with ex ->
-        failwith ex.Message*)
+  let compile (com: ICompiler) checker projOpts fileMask =
+      let projOpts =
+          getProjectOptions com checker projOpts fileMask
+      projOpts
+      |> parseFSharpProject com checker
+      |> FSharp2Fable.Compiler.transformFiles com fileMask
+      |> Seq.map (Fable2CSharp.Compiler.transformFiles com)
+      |> Seq.concat
 
-  let compile com checker projCode fileMask =
-    parse com checker projCode fileMask
-    |> Fable2CSharp.Compiler.transformFiles com
-
-  let main argv operation =
+  
+  let main argv =
     let opts =
-        Fable.Main.readOptions argv
+        readOptions argv
         |> function
             | opts when opts.code <> null ->
                 { opts with projFile = Path.ChangeExtension(Path.GetTempFileName(), "fsx") }
             | opts -> opts
-    let plugins = Fable.Main.loadPlugins opts
-    let com = { new Fable.ICompiler with
-                member __.Options = opts
-                member __.Plugins = plugins }
+    let com = makeCompiler (loadPlugins opts) opts
     let checker = FSharpChecker.Create(keepAssemblyContents=true)
-    operation com checker (Option.ofObj opts.code) None
+    compile com checker None None

@@ -63,14 +63,38 @@
   -->
   <Import Project="..\..\.paket\paket.targets" />
   <ItemGroup>
-    <Compile Include="Tests.fs" />
+    <None Include="test11.cs" />
+    <None Include="test11.fsx" />
     <None Include="paket.references" />
     <Content Include="App.config" />
-    <None Include="test.fsx" />
+    <Compile Include="Tests.fs" />
+    <None Include="test1.fsx" />
+    <None Include="test1.cs" />
+    <None Include="test2.fsx" />
+    <None Include="test2.cs" />
+    <None Include="test3.fsx" />
+    <None Include="test3.cs" />
+    <None Include="complex.fsx" />
+    <None Include="test4.fsx" />
+    <None Include="test4.cs" />
+    <None Include="test5.fsx" />
+    <None Include="test5.cs" />
+    <None Include="test6.fsx" />
+    <None Include="test6.cs" />
+    <Content Include="App.config" />
+    <None Include="paket.references" />
+    <None Include="test7.fsx" />
+    <None Include="test7.cs" />
+    <None Include="test8.fsx" />
+    <None Include="test8.cs" />
+    <None Include="test9.fsx" />
+    <None Include="test9.cs" />
+    <None Include="test10.fsx" />
+    <None Include="test10.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Fable">
-      <HintPath>..\..\node_modules\fable-compiler\bin\Fable.exe</HintPath>
+      <HintPath>..\..\lib\fable\Fable.exe</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
