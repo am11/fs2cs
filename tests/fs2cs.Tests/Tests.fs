@@ -78,7 +78,7 @@ let ``tests works`` () =
     Assert.IsNotEmpty(compiled)
     let a = compiled |> Seq.toArray
     Assert.AreEqual( 1, a.Length )
-    let content = ( a.[0] |> snd ).ToString()
+    let content = ( a.[0] |> snd ).ToString().Replace( "\r\n", "\n" )
     let csharp = File.ReadAllText( Path.ChangeExtension( source, ".cs" ) )
     Assert.AreEqual( csharp, content )  
   )
@@ -101,18 +101,6 @@ let ``complex fsx test`` () =
 let ``simple "printf \"%A\" 5" compile works`` () =
   //try
     let compiled = Library.main [|"--code";"printf \"%A\" 5"|]
-    Assert.NotNull(compiled)
-    Assert.IsNotEmpty(compiled)
-    let a = compiled |> Seq.toArray
-    Assert.AreEqual( 1, a.Length )
-    let content = (snd  a.[0]).ToString()
-    let file = fst a.[0]
-    Assert.AreEqual( sprintf "public class %s {\r\n    public static int add(int a, int b) {\r\n        return a + b;\r\n    }\r\n}" file.Root.Name, content )    
-
-[<Test>]
-let ``simple "let a = System.Math.Abs(-5);;a" compile works`` () =
-  //try
-    let compiled = Library.main [|"--code";"let a = System.Math.Abs(-5);;a"|]
     Assert.NotNull(compiled)
     Assert.IsNotEmpty(compiled)
     let a = compiled |> Seq.toArray
