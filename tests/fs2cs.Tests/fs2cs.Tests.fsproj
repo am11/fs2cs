@@ -68,6 +68,7 @@
     <None Include="test1.cs" />
     <None Include="test2.fsx" />
     <None Include="test2.cs" />
+    <None Include="test3.fsx" />
     <None Include="test3.cs" />
     <None Include="complex.fsx" />
     <None Include="test4.fsx" />
@@ -75,11 +76,10 @@
     <None Include="test6.fsx" />
     <Content Include="App.config" />
     <None Include="paket.references" />
-    <None Include="test3.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Fable">
-      <HintPath>..\..\node_modules\fable-compiler\bin\Fable.exe</HintPath>
+      <HintPath>..\..\lib\fable\Fable.exe</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
