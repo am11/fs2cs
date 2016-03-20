@@ -63,7 +63,14 @@
   -->
   <Import Project="..\..\.paket\paket.targets" />
   <ItemGroup>
+    <None Include="test10.cs" />
+    <None Include="test9.cs" />
+    <None Include="test8.cs" />
+    <None Include="test7.cs" />
+    <None Include="paket.references" />
+    <Content Include="App.config" />
     <Compile Include="Tests.fs" />
+    <None Include="test6.cs" />
     <None Include="test1.fsx" />
     <None Include="test1.cs" />
     <None Include="test2.fsx" />
@@ -71,11 +78,17 @@
     <None Include="test3.fsx" />
     <None Include="test3.cs" />
     <None Include="complex.fsx" />
+    <None Include="test4.cs" />
+    <None Include="test5.cs" />
     <None Include="test4.fsx" />
     <None Include="test5.fsx" />
     <None Include="test6.fsx" />
     <Content Include="App.config" />
     <None Include="paket.references" />
+    <None Include="test7.fsx" />
+    <None Include="test8.fsx" />
+    <None Include="test9.fsx" />
+    <None Include="test10.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Fable">
