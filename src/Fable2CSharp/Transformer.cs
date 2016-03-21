@@ -204,43 +204,13 @@ namespace fs2cs.Fable2CSharp
 
                 }
                 else if (kind.IsApplyMeth)
-                {
-                    //WIP massive refactoring and testing needed!
-                    var type = ((Expr.Apply)apply.callee).typ;
-                    var args1 = ((Expr.Apply)apply.callee).args;
-                    var args2 = apply.args;
-                    List<Expr> args = new List<Expr>();
-                    args.AddRange(args1);
-                    args.AddRange(args2);
+                {                
+                    var methodArguments = GetAllMethodArguments(apply, apply.typ.FullName);
+                    var functionExpression = GetFunctionExpression(apply);
 
-                    var arity = 0;
-                    var testObject = apply.callee;
-
-                    while (testObject.Type.IsPrimitiveType
-                           && !testObject.IsValue)
-                    {
-                        testObject = ((Expr.Apply)testObject).callee;
-                    }
-                    var value = ((Expr.Value)testObject).value;
-
-                    if (value.IsIdentValue)
-                    {
-                        arity = GetMethodArity((Fable.AST.Fable.Type.PrimitiveType)value.Type);
-                    }
-
-                    CSharpSyntaxNode ex;                    
-                    var methodParams = GetMethodArguments(args.ToArray());
-
-                    if (arity > 1)
-                    {
-                        ex = TransformExpression(testObject);                        
-                        methodParams = GetMethodArguments(args.ToArray());
-                    } else
-                    {
-                        ex = TransformExpression(apply.callee);
-                        methodParams = GetMethodArguments(apply.args.ToArray());
-                    }
-
+                    CSharpSyntaxNode ex = TransformExpression(functionExpression);
+                    var methodParams = GetMethodArguments(methodArguments.ToArray());
+                    
                     var ex2 = (ExpressionSyntax)ex;
 
                     return
@@ -405,6 +375,45 @@ namespace fs2cs.Fable2CSharp
             var member = declaration.Item;
             return (ExpressionSyntax)TransformExpression(member.Body);
         }
+
+        private List<Expr> GetAllMethodArguments(Expr.Apply apply, string methodName)
+        {
+            var methodArgs = new List<Expr>();
+            if (apply.typ.FullName.Equals(methodName))
+            {
+                if (apply.callee.IsApply)
+                {
+                    var callee = (Expr.Apply)apply.callee;
+                    if (callee.kind.IsApplyMeth)
+                    {
+                        methodArgs.AddRange(GetAllMethodArguments((Expr.Apply)apply.callee, methodName));
+                    }
+                }
+            }
+            methodArgs.AddRange(apply.args);
+
+            return methodArgs;
+        }
+
+        private Expr GetFunctionExpression(Expr.Apply apply)
+        {
+            var testObject = apply.callee;
+
+            while (testObject.Type.IsPrimitiveType
+                   && !testObject.IsValue)
+            {
+                testObject = ((Expr.Apply)testObject).callee;
+            }
+
+            var value = ((Expr.Value)testObject).value;
+            if (!value.IsIdentValue)
+            {   
+                return apply.callee;
+            }
+
+            return testObject;
+        }
+
         private SyntaxNodeOrToken[] GetMethodParameters(Declaration.MemberDeclaration declaration)
         {
             var member = declaration.Item;
