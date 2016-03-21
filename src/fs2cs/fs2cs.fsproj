@@ -65,6 +65,7 @@
     <Compile Include="Fable2CSharp.fs" />
     <Compile Include="Library.fs" />
     <Content Include="App.config" />
+    <None Include="ASTViewer.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Fable">
