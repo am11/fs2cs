@@ -79,7 +79,7 @@ let ``tests works`` () =
     let a = compiled |> Seq.toArray
     Assert.AreEqual( 1, a.Length )
     let content = ( a.[0] |> snd ).ToString().Replace( "\r\n", "\n" )
-    let csharp = File.ReadAllText( Path.ChangeExtension( source, ".cs" ) )
+    let csharp = File.ReadAllText( Path.ChangeExtension( source, ".cs" ) ).ToString().Replace( "\r\n", "\n" )
     Assert.AreEqual( csharp, content )  
   )
 
