@@ -1,0 +1,1 @@
+﻿let id m n o = m;; let y funkce a b c = (funkce a b c) + 1;; y id 2 3 4
