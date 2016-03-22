@@ -1,0 +1,1 @@
+﻿let mul m n o = m * n * o;; let y funkce a b c = (funkce a b c) + 1;; y mul 2 3 4
