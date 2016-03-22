@@ -1,4 +1,6 @@
-﻿public class Test13 {
+﻿pusing System;
+
+ublic class Test13 {
     public static dynamic id(dynamic m, dynamic n, dynamic o) {
         return m;
     }

@@ -79,8 +79,26 @@ let ``tests works`` () =
     let a = compiled |> Seq.toArray
     Assert.AreEqual( 1, a.Length )
     let content = ( a.[0] |> snd ).ToString().Replace( "\r\n", "\n" )
+
     let csharp = File.ReadAllText( Path.ChangeExtension( source, ".cs" ) ).ToString().Replace( "\r\n", "\n" )
     Assert.AreEqual( csharp, content )  
+
+    let references = [|
+        typeof<System.Func<Object>>.Assembly.Location;
+        typeof<System.Runtime.CompilerServices.DynamicAttribute>.Assembly.Location
+        typeof<Microsoft.CSharp.RuntimeBinder.Binder>.Assembly.Location
+    |]
+
+    let compiler = 
+        new Microsoft.CSharp.CSharpCodeProvider(
+            dict [ ("CompilerVersion", "v4.0") ]
+        )
+
+    let compilerParams = 
+        new System.CodeDom.Compiler.CompilerParameters(references)
+    
+    let result = compiler.CompileAssemblyFromSource(compilerParams, content)
+    Assert.IsEmpty(result.Errors)
   )
 
 [<Test>]

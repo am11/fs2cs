@@ -1,4 +1,6 @@
-﻿public class Test10 {
+﻿using System;
+
+public class Test10 {
     public static dynamic id(dynamic x) {
         return x;
     }

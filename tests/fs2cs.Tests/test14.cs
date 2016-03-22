@@ -1,4 +1,6 @@
-﻿public class Test14 {
+﻿using System;
+
+public class Test14 {
     public static int mul(int m, int n, int o) {
         return m * n * o;
     }
