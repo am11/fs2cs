@@ -5,11 +5,11 @@ public class Test10 {
         return x;
     }
 
-    public static int y(Func<dynamic, dynamic> fn, dynamic b) {
+    public static dynamic y(Func<dynamic, dynamic> fn, dynamic b) {
         return fn(b) + 1;
     }
 
-    public static int Invoke() {
+    public static dynamic Invoke() {
         return y((x) => id(x), 1);
     }
 }

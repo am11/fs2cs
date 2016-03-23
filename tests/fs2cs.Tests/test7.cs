@@ -1,12 +1,12 @@
 ﻿using System;
 
 public class Test7 {
-    public static readonly int a = 123;
-    public static int fac(int b) {
+    public static readonly dynamic a = 123;
+    public static dynamic fac(dynamic b) {
         return b + 1;
     }
 
-    public static int Invoke() {
+    public static dynamic Invoke() {
         return fac(a);
     }
 }
