@@ -403,7 +403,7 @@ namespace fs2cs.Fable2CSharp
             }
 
             var value = ((Expr.Value)testObject).value;
-            if (!value.IsIdentValue)
+            if (!value.IsIdentValue || value.Type.IsUnknownType)
             {
                 return apply.callee;
             }
