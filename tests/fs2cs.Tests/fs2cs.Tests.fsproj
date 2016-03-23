@@ -95,6 +95,8 @@
     <None Include="test11.cs" />
     <None Include="test12.fsx" />
     <None Include="test12.cs" />
+    <None Include="test14.fsx" />
+    <None Include="test14.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Fable">
