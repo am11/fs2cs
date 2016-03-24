@@ -66,12 +66,6 @@
   <Import Project="..\..\.paket\paket.targets" />
   <ItemGroup>
     <None Include="paket.references" />
-    <Content Include="web.config.install.xdt">
-      <Paket>True</Paket>
-    </Content>
-    <Content Include="web.config.uninstall.xdt">
-      <Paket>True</Paket>
-    </Content>
     <Content Include="App.config" />
     <Compile Include="Tests.fs" />
     <None Include="test1.fsx" />

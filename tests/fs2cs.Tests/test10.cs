@@ -1,4 +1,5 @@
 ﻿using System;
+using static fs2csLib.Impl;
 
 public class Test10 {
     public static dynamic id(dynamic x) {

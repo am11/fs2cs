@@ -1,4 +1,5 @@
 ﻿using System;
+using static fs2csLib.Impl;
 
 public class Test14 {
     public static dynamic mul(dynamic m, dynamic n, dynamic o) {
