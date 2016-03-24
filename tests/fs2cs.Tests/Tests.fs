@@ -147,3 +147,6 @@ let ``printf`` () = runTest "16"
 
 [<Test>]
 let ``Arrays`` () = runTest "17"
+
+[<Test>]
+let ``if`` () = runTest "18"

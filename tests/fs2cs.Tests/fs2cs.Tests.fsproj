@@ -65,7 +65,8 @@
   -->
   <Import Project="..\..\.paket\paket.targets" />
   <ItemGroup>
-    <None Include="test17.cs" />
+    <None Include="test18.cs" />
+    <None Include="test18.fsx" />
     <None Include="test17.fsx" />
     <None Include="paket.references" />
     <Content Include="App.config" />
@@ -104,8 +105,9 @@
     <None Include="test15.fsx" />
     <None Include="test14.cs" />
     <None Include="test15.cs" />
-    <None Include="test16.fsx" />
     <None Include="test16.cs" />
+    <None Include="test16.fsx" />
+    <None Include="test17.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Fable">

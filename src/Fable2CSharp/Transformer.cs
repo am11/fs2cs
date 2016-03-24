@@ -82,7 +82,8 @@ namespace fs2cs.Fable2CSharp
                                 .WithInitializer(InitializerExpression(SyntaxKind.ArrayInitializerExpression, SeparatedList<ExpressionSyntax>(new SyntaxNodeOrToken[] { LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(1)), Token(SyntaxKind.CommaToken), LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(2)) })));
                         }
                         else
-                            Console.WriteLine(ack.ToString());
+                            throw new NotImplementedException(ack.ToString());
+                        
                     }
                     else if (arrayConsKind.IsArrayValues)
                     {
@@ -110,7 +111,7 @@ namespace fs2cs.Fable2CSharp
                     }
                     else
                     {
-                        Console.WriteLine(arrayConst.kind.ToString());
+                        throw new NotImplementedException(arrayConst.kind.ToString());
                     }
                 }
                 else if (kind.IsEmit)
@@ -183,27 +184,35 @@ namespace fs2cs.Fable2CSharp
                         var left = apply.args.First();
                         var right = apply.args.Last();
                         var op = (ValueKind.BinaryOp)value.value;
+                        var leftES = (ExpressionSyntax)TransformExpression(left);
+                        var rightES = (ExpressionSyntax)TransformExpression(right);
                         if (op.Item.IsBinaryPlus)
                         {
-                            var leftES = (ExpressionSyntax)TransformExpression(left);
-                            var rightES = (ExpressionSyntax)TransformExpression(right);
                             return BinaryExpression(SyntaxKind.AddExpression, leftES, rightES);
                         }
                         else if (op.Item.IsBinaryMinus)
                         {
-                            var leftES = (ExpressionSyntax)TransformExpression(left);
-                            var rightES = (ExpressionSyntax)TransformExpression(right);
                             return BinaryExpression(SyntaxKind.SubtractExpression, leftES, rightES);
                         }
                         else if (op.Item.IsBinaryMultiply)
                         {
-                            var leftES = (ExpressionSyntax)TransformExpression(left);
-                            var rightES = (ExpressionSyntax)TransformExpression(right);
                             return BinaryExpression(SyntaxKind.MultiplyExpression, leftES, rightES);
+                        }
+                        else if (op.Item.IsBinaryEqualStrict)
+                        {
+                            return BinaryExpression(SyntaxKind.EqualsExpression, leftES, rightES);
+                        }
+                        else if (op.Item.IsBinaryGreater)
+                        {
+                            return BinaryExpression(SyntaxKind.GreaterThanExpression, leftES, rightES);
+                        }
+                        else if (op.Item.IsBinaryLess)
+                        {
+                            return BinaryExpression(SyntaxKind.LessThanExpression, leftES, rightES);
                         }
                         else
                         {
-                            Console.WriteLine(kind.ToString());
+                            throw new NotImplementedException(op.Item.ToString());
                         }
                     }
                     else if (value.value.IsLambda)
@@ -232,7 +241,7 @@ namespace fs2cs.Fable2CSharp
                     }
                     else
                     {
-                        Console.WriteLine(kind.ToString());
+                        throw new NotImplementedException(value.value.ToString());
                     }
 
                 }
@@ -258,7 +267,7 @@ namespace fs2cs.Fable2CSharp
                 }
                 else
                 {
-                    Console.WriteLine(kind.ToString());
+                    throw new NotImplementedException(kind.ToString());
                 }
             }
             else if (expr.IsWrapped)
@@ -269,11 +278,21 @@ namespace fs2cs.Fable2CSharp
             else if (expr.IsSequential)
             {
                 var sequential = (Expr.Sequential)expr;
-                var result = List<StatementSyntax>();
+                var result = new List<StatementSyntax>();
                 foreach (var expr1 in sequential.Item1)
                 {
                     var transf = TransformExpression(expr1);
-                    result.Add((StatementSyntax)transf);
+                    if (transf is StatementSyntax)
+                    {
+                        result.Add((StatementSyntax)transf);
+                    } else if ( transf is ParenthesizedLambdaExpressionSyntax )
+                    {
+                        var parenthesizedLambdaExpressionSyntax = (ParenthesizedLambdaExpressionSyntax)transf;
+                        var body = parenthesizedLambdaExpressionSyntax.Body;
+                        throw new NotImplementedException(transf.ToString());
+                    }
+                    else
+                        throw new NotImplementedException(transf.ToString());
                 }
                 return Block(result);
             }
@@ -285,9 +304,18 @@ namespace fs2cs.Fable2CSharp
                     .WithVariables(SingletonSeparatedList<VariableDeclaratorSyntax>(
                         VariableDeclarator(Identifier(varDeclaration.var.name))
                         .WithInitializer(EqualsValueClause((ExpressionSyntax)TransformExpression(varDeclaration.value))))));
+            } else if (expr.IsIfThenElse)
+            {
+                var ifThenElse = (Expr.IfThenElse)expr;
+
+                return
+                    /*IfStatement( (ExpressionSyntax)TransformExpression(ifThenElse.guardExpr), (StatementSyntax)TransformExpression(ifThenElse.thenExpr)) //Block(SingletonList<StatementSyntax>(ExpressionStatement(AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, IdentifierName("a"), BinaryExpression(SyntaxKind.AddExpression, IdentifierName("a"), LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(1))))))))
+                    .WithElse(ElseClause(Block(SingletonList<StatementSyntax>(ExpressionStatement(AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, IdentifierName("a"), BinaryExpression(SyntaxKind.MultiplyExpression, IdentifierName("a"), LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(2)))))))));*/
+                    ConditionalExpression((ExpressionSyntax)TransformExpression(ifThenElse.guardExpr), (ExpressionSyntax)TransformExpression(ifThenElse.thenExpr), (ExpressionSyntax)TransformExpression(ifThenElse.elseExpr));
+
             }
 
-            throw new NotImplementedException(expr.ToString());
+                throw new NotImplementedException(expr.ToString());
         }
 
         private SyntaxNodeOrToken[] GetLambdaParameters(Ident[] idents)
@@ -433,10 +461,13 @@ namespace fs2cs.Fable2CSharp
                 testObject = ((Expr.Apply)testObject).callee;
             }
 
-            var value = ((Expr.Value)testObject).value;
-            if (!value.IsIdentValue || value.Type.IsUnknownType)
+            if (testObject.IsValue)
             {
-                return apply.callee;
+                var value = ((Expr.Value)testObject).value;
+                if (!value.IsIdentValue || value.Type.IsUnknownType)
+                {
+                    return apply.callee;
+                }
             }
 
             return testObject;
@@ -523,13 +554,16 @@ namespace fs2cs.Fable2CSharp
                 {
                     var actionDeclaration = (Declaration.ActionDeclaration)declaration;
                     var expr = actionDeclaration.Item1;
-                    var returnExpression = (ExpressionSyntax)TransformExpression(expr);
+                    var statement = TransformExpression(expr);
+                    var returnExpression = statement as ExpressionSyntax;
                     Boolean isVoid;
                     var returnType = Typ2Type(expr.Type, out isVoid);
                     var methodDeclaration =
                           MethodDeclaration(returnType, "Invoke")
                           .WithModifiers(TokenList(new[] { Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword) }))
                           .WithBody(Block(
+                              returnExpression == null ?
+                              (StatementSyntax)statement :
                               ReturnStatement(
                                   isVoid ? null : returnExpression
                               )
