@@ -279,12 +279,20 @@ namespace fs2cs.Fable2CSharp
             {
                 var sequential = (Expr.Sequential)expr;
                 var result = new List<StatementSyntax>();
+                var i = 0;
+                var lasti = sequential.Item1.Count() - 1;
                 foreach (var expr1 in sequential.Item1)
                 {
                     var transf = TransformExpression(expr1);
                     if (transf is ExpressionSyntax)
                     {
-                        result.Add(ExpressionStatement((ExpressionSyntax)transf));
+                        var expressionSyntax = (ExpressionSyntax)transf;
+                        if (i == lasti) {
+                            result.Add(ReturnStatement(expressionSyntax));
+                        }
+                        else {
+                            result.Add(ExpressionStatement(expressionSyntax));
+                        }
                     }
                     else if (transf is LocalDeclarationStatementSyntax)
                     {
@@ -292,7 +300,9 @@ namespace fs2cs.Fable2CSharp
                     }
                     else
                         throw new NotImplementedException(transf.ToString());
-                }
+
+                    i++;
+                }                
                 return InvocationExpression(ObjectCreationExpression(GenericName(Identifier("Func")).WithTypeArgumentList(TypeArgumentList(SingletonSeparatedList<TypeSyntax>(IdentifierName("dynamic"))))).WithArgumentList(ArgumentList(SingletonSeparatedList<ArgumentSyntax>(Argument(ParenthesizedLambdaExpression(Block(result)))))));
             }
             else if (expr.IsVarDeclaration)

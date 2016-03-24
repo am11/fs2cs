@@ -190,3 +190,6 @@ docs/tools/FSharp.Formatting.svclog
 
 # npm
 node_modules
+
+# test generated cs files
+*.cs1
