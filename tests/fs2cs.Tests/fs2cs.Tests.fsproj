@@ -63,8 +63,6 @@
   -->
   <Import Project="..\..\.paket\paket.targets" />
   <ItemGroup>
-    <None Include="test14.cs" />
-    <None Include="test14.fsx" />
     <None Include="paket.references" />
     <Content Include="App.config" />
     <Compile Include="Tests.fs" />
@@ -99,6 +97,8 @@
     <None Include="test14.cs" />
     <None Include="test13.fsx" />
     <None Include="test13.cs" />
+    <None Include="test14.fsx" />
+    <None Include="test14.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Fable">
@@ -115,6 +115,11 @@
     <ProjectReference Include="..\..\src\Fable2CSharp\Fable2CSharp.csproj">
       <Name>Fable2CSharp</Name>
       <Project>{dfacece4-6077-4b43-b0e0-2eb3b0fd297f}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\fs2csLib\fs2csLib.csproj">
+      <Name>fs2csLib</Name>
+      <Project>{06856a7d-be3e-42e1-b4e2-9d9b62584f32}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\src\fs2cs\fs2cs.fsproj">

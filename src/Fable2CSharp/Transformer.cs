@@ -513,7 +513,7 @@ namespace fs2cs.Fable2CSharp
             return
 
                 compilationUnit
-                .WithUsings(SingletonList(UsingDirective(ParseName("System"))))
+                .WithUsings(List<UsingDirectiveSyntax>(new UsingDirectiveSyntax[] { UsingDirective(IdentifierName("System")), UsingDirective(QualifiedName(IdentifierName("fs2csLib"), IdentifierName("Impl"))).WithStaticKeyword(Token(SyntaxKind.StaticKeyword)) }))
                 .WithMembers(SingletonList<MemberDeclarationSyntax>(GetClass(file)))
                 .NormalizeWhitespace()
             ;
