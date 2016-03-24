@@ -2,15 +2,9 @@
 using static fs2csLib.Impl;
 
 public class Test17 {
-    public static dynamic mul(dynamic m, dynamic n, dynamic o) {
-        return m * n * o;
-    }
-
-    public static dynamic y(Func<dynamic, dynamic, dynamic, dynamic> funkce, dynamic a, dynamic b, dynamic c) {
-        return funkce(a, b, c) + 1;
-    }
-
+    public static readonly dynamic a = new dynamic[] { 1, 2, 3 };
+    public static readonly dynamic b = from(append(new dynamic[] { 4, 5, 6 }, a));
     public static dynamic Invoke() {
-        return y(mul, 2, 3, 4);
+        return b;
     }
 }

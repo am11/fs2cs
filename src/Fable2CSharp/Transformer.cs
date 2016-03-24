@@ -88,16 +88,20 @@ namespace fs2cs.Fable2CSharp
                     {
                         var arrayValues = (ArrayConsKind.ArrayValues)arrayConsKind;
                         var values = arrayValues.Item;
+                        var result = new List<SyntaxNodeOrToken>();
                         foreach (var value1 in values)
                         {
                             var e = TransformExpression(value1);
-                        }
+                            result.Add(e);
+                            result.Add(Token(SyntaxKind.CommaToken));
+                        }                        
                         return ArrayCreationExpression(ArrayType(IdentifierName("dynamic"))
                             .WithRankSpecifiers(SingletonList<ArrayRankSpecifierSyntax>(ArrayRankSpecifier(SingletonSeparatedList<ExpressionSyntax>(OmittedArraySizeExpression())))))
                             .WithInitializer(InitializerExpression(SyntaxKind.ArrayInitializerExpression, 
-                            SeparatedList<ExpressionSyntax>(new SyntaxNodeOrToken[] {
-                                LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(1)), Token(SyntaxKind.CommaToken), LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(2)), Token(SyntaxKind.CommaToken), LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(3))
-                            })));
+                            SeparatedList<ExpressionSyntax>(
+                                //LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(1)), Token(SyntaxKind.CommaToken), LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(2)), Token(SyntaxKind.CommaToken), LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(3))
+                                result.Take(result.Count - 1).ToArray()
+                            )));
                     }
                     else if (arrayConsKind.IsArrayConversion)
                     {
