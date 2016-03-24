@@ -68,6 +68,8 @@ namespace fs2cs.Fable2CSharp
                 else if (kind.IsArrayConst)
                 {
                     var arrayConst = (ValueKind.ArrayConst)kind;
+
+                    var arrayConsKind = arrayConst.Item1;
                     if (arrayConst.kind.IsTuple)
                     {
                         var ack = arrayConst.Item1;
@@ -81,6 +83,26 @@ namespace fs2cs.Fable2CSharp
                         }
                         else
                             Console.WriteLine(ack.ToString());
+                    }
+                    else if (arrayConsKind.IsArrayValues)
+                    {
+                        var arrayValues = (ArrayConsKind.ArrayValues)arrayConsKind;
+                        var values = arrayValues.Item;
+                        foreach (var value1 in values)
+                        {
+                            var e = TransformExpression(value1);
+                        }
+                        return ArrayCreationExpression(ArrayType(IdentifierName("dynamic"))
+                            .WithRankSpecifiers(SingletonList<ArrayRankSpecifierSyntax>(ArrayRankSpecifier(SingletonSeparatedList<ExpressionSyntax>(OmittedArraySizeExpression())))))
+                            .WithInitializer(InitializerExpression(SyntaxKind.ArrayInitializerExpression, 
+                            SeparatedList<ExpressionSyntax>(new SyntaxNodeOrToken[] {
+                                LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(1)), Token(SyntaxKind.CommaToken), LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(2)), Token(SyntaxKind.CommaToken), LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(3))
+                            })));
+                    }
+                    else if (arrayConsKind.IsArrayConversion)
+                    {
+                        var arrayConversion = (ArrayConsKind.ArrayConversion)arrayConsKind;
+                        return TransformExpression(arrayConversion.Item);
                     }
                     else
                     {
@@ -141,7 +163,7 @@ namespace fs2cs.Fable2CSharp
                 }
                 else
                 {
-                    Console.WriteLine(kind.ToString());
+                    throw new NotImplementedException(kind.ToString());
                 }
             }
             else if (expr.IsApply)

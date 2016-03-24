@@ -1,7 +1,7 @@
 ﻿using System;
 using static fs2csLib.Impl;
 
-public class Test14 {
+public class Test17 {
     public static dynamic mul(dynamic m, dynamic n, dynamic o) {
         return m * n * o;
     }
