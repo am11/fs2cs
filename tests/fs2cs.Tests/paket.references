@@ -12,3 +12,4 @@ NUnit.Runners
 Newtonsoft.Json
 Microsoft.Composition
 Microsoft.CSharp
+Microsoft.CodeDom.Providers.DotNetCompilerPlatform

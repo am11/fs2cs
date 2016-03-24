@@ -85,12 +85,11 @@ let runTest n =
         typeof<System.Func<Object>>.Assembly.Location;
         typeof<System.Runtime.CompilerServices.DynamicAttribute>.Assembly.Location
         typeof<Microsoft.CSharp.RuntimeBinder.Binder>.Assembly.Location
+        typeof<fs2csLib.Impl>.Assembly.Location
     |]
 
     let compiler = 
-        new Microsoft.CSharp.CSharpCodeProvider(
-            dict [ ("CompilerVersion", "v4.0") ]
-        )
+        new Microsoft.CodeDom.Providers.DotNetCompilerPlatform.CSharpCodeProvider()
 
     let compilerParams = 
         new System.CodeDom.Compiler.CompilerParameters(references)

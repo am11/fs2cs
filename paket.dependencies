@@ -6,7 +6,7 @@ group Build
   nuget Destructurama.FSharp
   nuget FSharp.Compiler.Service
   nuget FSharp.Compiler.Service.ProjectCracker
-nuget FSharp.Core
+  nuget FSharp.Core
   nuget Logary
   nuget Microsoft.CodeAnalysis.CSharp
   nuget Microsoft.CodeAnalysis.CSharp.Workspaces
@@ -22,3 +22,6 @@ group Test
   nuget Newtonsoft.Json
   nuget NUnit ~> 2
   nuget NUnit.Runners ~> 2
+  nuget Microsoft.Composition
+  nuget Microsoft.CSharp
+  nuget Microsoft.CodeDom.Providers.DotNetCompilerPlatform
