@@ -13,5 +13,14 @@ namespace fs2csLib
         public static dynamic asin(dynamic p) { return Math.Asin(p); }
         public static dynamic atan(dynamic p) { return Math.Atan(p); }
         public static dynamic atan2(dynamic p, dynamic q) { return Math.Atan2(p, q); }
+
+        public static IEnumerable<dynamic> append(dynamic[] a, dynamic[] b )
+        {
+            return a.Concat(b);
+        }
+        public static dynamic[] from(IEnumerable<dynamic> a)
+        {
+            return a.ToArray();
+        }
     }
 }
