@@ -1,8 +1,11 @@
 ﻿let a = 5
 if a > 6 then
-  if a > 50 then
-    8
+  let b = 18
+  if a > 50 then    
+    b + 8
   else
-    9 
+    b - 9 
 else
-  2
+  let c = a * 2
+  c + 3
+

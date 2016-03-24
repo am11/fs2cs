@@ -282,19 +282,18 @@ namespace fs2cs.Fable2CSharp
                 foreach (var expr1 in sequential.Item1)
                 {
                     var transf = TransformExpression(expr1);
-                    if (transf is StatementSyntax)
+                    if (transf is ExpressionSyntax)
                     {
-                        result.Add((StatementSyntax)transf);
-                    } else if ( transf is ParenthesizedLambdaExpressionSyntax )
+                        result.Add(ExpressionStatement((ExpressionSyntax)transf));
+                    }
+                    else if (transf is LocalDeclarationStatementSyntax)
                     {
-                        var parenthesizedLambdaExpressionSyntax = (ParenthesizedLambdaExpressionSyntax)transf;
-                        var body = parenthesizedLambdaExpressionSyntax.Body;
-                        throw new NotImplementedException(transf.ToString());
+                        result.Add((LocalDeclarationStatementSyntax)transf);
                     }
                     else
                         throw new NotImplementedException(transf.ToString());
                 }
-                return Block(result);
+                return InvocationExpression(ObjectCreationExpression(GenericName(Identifier("Func")).WithTypeArgumentList(TypeArgumentList(SingletonSeparatedList<TypeSyntax>(IdentifierName("dynamic"))))).WithArgumentList(ArgumentList(SingletonSeparatedList<ArgumentSyntax>(Argument(ParenthesizedLambdaExpression(Block(result)))))));
             }
             else if (expr.IsVarDeclaration)
             {
