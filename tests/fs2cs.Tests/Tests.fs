@@ -137,31 +137,13 @@ let ``test 12`` () = runTest "12"
 let ``test 13`` () = runTest "13"
 
 [<Test>]
-let ``test 14`` () = runTest "14"
+let ``Multiplication, passing function as a parameter`` () = runTest "14"
 
 [<Test>]
-[<Ignore>]
-let ``complex fsx test`` () =
-  //try
-    let compiled = Library.main [|"--projFile";"../../complex.fsx"|]
-    Assert.NotNull(compiled)
-    Assert.IsNotEmpty(compiled)
-    let a = compiled |> Seq.toArray
-    Assert.AreEqual( 1, a.Length )
-    let content = (snd  a.[0]).ToString()
-    let file = fst a.[0]
-    Assert.AreEqual( sprintf "public class %s {\r\n    public static readonly int x = 10 + 12 - 3;\r\n}" file.Root.Name, content )
+let ``SimpleArithmetic with printf`` () = runTest "15"
 
 [<Test>]
-[<Ignore>]
-let ``simple "printf \"%A\" 5" compile works`` () =
-  //try
-    let compiled = Library.main [|"--code";"printf \"%A\" 5"|]
-    Assert.NotNull(compiled)
-    Assert.IsNotEmpty(compiled)
-    let a = compiled |> Seq.toArray
-    Assert.AreEqual( 1, a.Length )
-    let content = (snd  a.[0]).ToString()
-    let file = fst a.[0]
-    Assert.AreEqual( sprintf "public class %s {\r\n    public static int add(int a, int b) {\r\n        return a + b;\r\n    }\r\n}" file.Root.Name, content )    
+let ``printf`` () = runTest "16"
 
+[<Test>]
+let ``Arrays`` () = runTest "17"
