@@ -38,8 +38,17 @@ namespace fs2cs.Fable2CSharp
                 else if (kind.IsNumberConst)
                 {
                     var const1 = (ValueKind.NumberConst)kind;
-                    var res = (Fable.AST.U2<Int32, Double>.Case1)const1.Item1;
-                    return LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(res.Item));
+
+                    if (const1.Item1.IsCase1)
+                    {
+                        var res = (Fable.AST.U2<Int32, Double>.Case1)const1.Item1;
+                        return LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(res.Item));
+                    } else
+                    {
+                        var res = (Fable.AST.U2<Int32, Double>.Case2)const1.Item1;
+                        return LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(res.Item));
+                    }
+                    
                 }
                 else if (kind.IsStringConst)
                 {
