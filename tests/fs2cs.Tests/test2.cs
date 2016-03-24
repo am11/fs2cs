@@ -1,3 +1,5 @@
-﻿public class Test2 {
-    public static readonly int a = 12345;
+﻿using System;
+
+public class Test2 {
+    public static readonly dynamic a = 12345;
 }

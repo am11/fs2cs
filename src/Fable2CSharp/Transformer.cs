@@ -38,7 +38,7 @@ namespace fs2cs.Fable2CSharp
                 else if (kind.IsNumberConst)
                 {
                     var const1 = (ValueKind.NumberConst)kind;
-                    var res = (Fable.AST.U2<int, double>.Case1)const1.Item1;
+                    var res = (Fable.AST.U2<Int32, Double>.Case1)const1.Item1;
                     return LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(res.Item));
                 }
                 else if (kind.IsStringConst)
@@ -69,9 +69,11 @@ namespace fs2cs.Fable2CSharp
                                 WithRankSpecifiers(SingletonList<ArrayRankSpecifierSyntax>(
                                     ArrayRankSpecifier(SingletonSeparatedList<ExpressionSyntax>(OmittedArraySizeExpression())))))
                                 .WithInitializer(InitializerExpression(SyntaxKind.ArrayInitializerExpression, SeparatedList<ExpressionSyntax>(new SyntaxNodeOrToken[] { LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(1)), Token(SyntaxKind.CommaToken), LiteralExpression(SyntaxKind.NumericLiteralExpression, Literal(2)) })));
-                        } else
+                        }
+                        else
                             Console.WriteLine(ack.ToString());
-                    } else
+                    }
+                    else
                     {
                         Console.WriteLine(arrayConst.kind.ToString());
                     }
@@ -132,7 +134,8 @@ namespace fs2cs.Fable2CSharp
                 {
                     Console.WriteLine(kind.ToString());
                 }
-            } else if (expr.IsApply)
+            }
+            else if (expr.IsApply)
             {
                 var apply = (Expr.Apply)expr;
                 var kind = apply.kind;
@@ -167,9 +170,10 @@ namespace fs2cs.Fable2CSharp
                         {
                             Console.WriteLine(kind.ToString());
                         }
-                    } else if (value.value.IsLambda)
+                    }
+                    else if (value.value.IsLambda)
                     {
-                        var lambda = (ValueKind.Lambda)value.value;                        
+                        var lambda = (ValueKind.Lambda)value.value;
                         return
                             ParenthesizedLambdaExpression(TransformExpression(lambda.body))
                             .WithParameterList(ParameterList(SeparatedList<ParameterSyntax>(GetLambdaParameters(lambda.args.ToArray()))));
@@ -183,7 +187,7 @@ namespace fs2cs.Fable2CSharp
                             return
                                 InvocationExpression(ex)
                                 .WithArgumentList(ArgumentList(SeparatedList<ArgumentSyntax>(
-                                    GetMethodArguments(apply.args.ToArray())
+                                    GetCSharpMethodArguments(apply.args.ToArray())
                                 )));
                         }
                         /*
@@ -201,13 +205,13 @@ namespace fs2cs.Fable2CSharp
                 {
                     var methodArguments = GetAllMethodArguments(apply, apply.typ.FullName);
                     var functionExpression = GetFunctionExpression(apply);
-                    CSharpSyntaxNode ex = TransformExpression(functionExpression);
-                    var methodParams = GetMethodArguments(methodArguments.ToArray());
-                    var ex2 = (ExpressionSyntax)ex;
+                    var csharpCall = (ExpressionSyntax)TransformExpression(functionExpression);
+                    var csharpArgs = GetCSharpMethodArguments(methodArguments);
+
                     return
-                        InvocationExpression(ex2)
+                        InvocationExpression(csharpCall)
                         .WithArgumentList(ArgumentList(SeparatedList<ArgumentSyntax>(
-                            methodParams
+                            csharpArgs
                         )));
                 }
                 else if (kind.IsApplyGet)
@@ -216,12 +220,13 @@ namespace fs2cs.Fable2CSharp
                     var ex = (LiteralExpressionSyntax)TransformExpression(left);
                     var token = ex.Token;
                     return IdentifierName(token.ValueText);
-                } else
+                }
+                else
                 {
                     Console.WriteLine(kind.ToString());
                 }
             }
-            else if ( expr.IsWrapped )
+            else if (expr.IsWrapped)
             {
                 var wrapped = (Expr.Wrapped)expr;
                 return TransformExpression(wrapped.Item1);
@@ -230,20 +235,21 @@ namespace fs2cs.Fable2CSharp
             {
                 var sequential = (Expr.Sequential)expr;
                 var result = List<StatementSyntax>();
-                foreach ( var expr1 in sequential.Item1)
+                foreach (var expr1 in sequential.Item1)
                 {
                     var transf = TransformExpression(expr1);
                     result.Add((StatementSyntax)transf);
                 }
                 return Block(result);
-            } else if ( expr.IsVarDeclaration )
+            }
+            else if (expr.IsVarDeclaration)
             {
                 var varDeclaration = (Expr.VarDeclaration)expr;
-                return 
+                return
                     LocalDeclarationStatement(VariableDeclaration(IdentifierName("var"))
                     .WithVariables(SingletonSeparatedList<VariableDeclaratorSyntax>(
                         VariableDeclarator(Identifier(varDeclaration.var.name))
-                        .WithInitializer(EqualsValueClause( (ExpressionSyntax)TransformExpression(varDeclaration.value) )))));
+                        .WithInitializer(EqualsValueClause((ExpressionSyntax)TransformExpression(varDeclaration.value))))));
             }
 
             throw new NotImplementedException(expr.ToString());
@@ -262,23 +268,14 @@ namespace fs2cs.Fable2CSharp
         }
 
 
-        private TypeSyntax Typ2Type(Fable.AST.Fable.Type typ, out bool isVoid)
+        private TypeSyntax Typ2Type(Fable.AST.Fable.Type typ, out Boolean isVoid)
         {
             isVoid = false;
             if (typ.IsPrimitiveType)
             {
                 var memberType = (Fable.AST.Fable.Type.PrimitiveType)typ;
-                if (memberType.Item.IsNumber)
-                {
-                    var memberTypeKind = (PrimitiveTypeKind.Number)memberType.Item;
-                    var memberTypeKindItem = memberTypeKind.Item;
-                    if (memberTypeKindItem.IsInt32) return PredefinedType(Token(SyntaxKind.IntKeyword));
-                }
-                else if (memberType.Item.IsString)
-                {
-                    return PredefinedType(Token(SyntaxKind.StringKeyword));
-                }
-                else if (memberType.Item.IsUnit)
+
+                if (memberType.Item.IsUnit)
                 {
                     isVoid = true;
                     return PredefinedType(Token(SyntaxKind.VoidKeyword));
@@ -286,8 +283,8 @@ namespace fs2cs.Fable2CSharp
                 else if (memberType.Item.IsFunction)
                 {
                     var memberTypeKind = (PrimitiveTypeKind.Function)memberType.Item;
-                    List < SyntaxNodeOrToken > methodParameters = new List<SyntaxNodeOrToken>();
-                    for (int i = 0; i <= memberTypeKind.arity; i++)
+                    List<SyntaxNodeOrToken> methodParameters = new List<SyntaxNodeOrToken>();
+                    for (Int32 i = 0; i <= memberTypeKind.arity; i++)
                     {
                         methodParameters.Add(IdentifierName("dynamic"));
                         methodParameters.Add(Token(SyntaxKind.CommaToken));
@@ -296,16 +293,13 @@ namespace fs2cs.Fable2CSharp
                     return GenericName(Identifier("Func"))
                       .WithTypeArgumentList(TypeArgumentList(SeparatedList<TypeSyntax>(methodParameters)));
                 }
-                throw new NotImplementedException(memberType.ToString());
-            } else if ( typ.IsUnknownType )
-            {
-                return IdentifierName("dynamic");
             }
-            throw new NotImplementedException(typ.ToString());
+
+            return IdentifierName("dynamic");
         }
 
 
-        private int GetMethodArity(Fable.AST.Fable.Type.PrimitiveType type)
+        private Int32 GetMethodArity(Fable.AST.Fable.Type.PrimitiveType type)
         {
             if (type.Item.IsFunction)
             {
@@ -315,7 +309,7 @@ namespace fs2cs.Fable2CSharp
             return 0;
         }
 
-        private TypeSyntax GetFieldType(Declaration.MemberDeclaration declaration, out bool isVoid)
+        private TypeSyntax GetFieldType(Declaration.MemberDeclaration declaration, out Boolean isVoid)
         {
             isVoid = false;
             var member = declaration.Item;
@@ -323,11 +317,13 @@ namespace fs2cs.Fable2CSharp
             {
                 var memberBody = (Expr.Value)member.Body;
                 return Typ2Type(memberBody.Type, out isVoid);
-            } else if (member.Body.IsApply)
+            }
+            else if (member.Body.IsApply)
             {
                 var memberBody = (Expr.Apply)member.Body;
                 return Typ2Type(memberBody.typ, out isVoid);
-            } else if (member.Body.IsWrapped)
+            }
+            else if (member.Body.IsWrapped)
             {
                 var memberBody = (Expr.Wrapped)member.Body;
                 return Typ2Type(memberBody.Item2, out isVoid);
@@ -353,26 +349,26 @@ namespace fs2cs.Fable2CSharp
             var memberKindMethod = (MemberKind.Method)member.Kind;
             return Identifier(memberKindMethod.name);
         }
-        private bool IsField(Declaration.MemberDeclaration declaration)
+        private Boolean IsField(Declaration.MemberDeclaration declaration)
         {
             var member = declaration.Item;
             var memberKind = member.Kind;
             return memberKind.IsGetter;
         }
-        private bool IsMethod(Declaration.MemberDeclaration declaration)
+        private Boolean IsMethod(Declaration.MemberDeclaration declaration)
         {
             var member = declaration.Item;
             var memberKind = member.Kind;
             return memberKind.IsMethod;
         }
-       
+
         private ExpressionSyntax GetFieldValue(Declaration.MemberDeclaration declaration)
         {
             var member = declaration.Item;
             return (ExpressionSyntax)TransformExpression(member.Body);
         }
 
-        private List<Expr> GetAllMethodArguments(Expr.Apply apply, string methodName)
+        private List<Expr> GetAllMethodArguments(Expr.Apply apply, String methodName)
         {
             var methodArgs = new List<Expr>();
             if (apply.typ.FullName.Equals(methodName))
@@ -416,16 +412,16 @@ namespace fs2cs.Fable2CSharp
         {
             var member = declaration.Item;
             var result = new List<SyntaxNodeOrToken>();
-            foreach ( var ident in member.Arguments )
+            foreach (var ident in member.Arguments)
             {
-                bool isVoid;
+                Boolean isVoid;
                 var parameter = Parameter(Identifier(ident.name)).WithType(Typ2Type(ident.typ, out isVoid));
                 result.Add(parameter);
                 result.Add(Token(SyntaxKind.CommaToken));
             }
             return result.Take(result.Count - 1).ToArray();
         }
-        private SyntaxNodeOrToken[] GetMethodArguments(Expr[] arguments)
+        private SyntaxNodeOrToken[] GetCSharpMethodArguments(IEnumerable<Expr> arguments)
         {
             //return new SyntaxNodeOrToken[] { Argument(IdentifierName("a")), Token(SyntaxKind.CommaToken), Argument(IdentifierName("b")) };
             var result = new List<SyntaxNodeOrToken>();
@@ -436,13 +432,14 @@ namespace fs2cs.Fable2CSharp
                 {
                     var parameter = Argument((ExpressionSyntax)argVal);
                     result.Add(parameter);
-                } else
+                }
+                else
                 {
                     //result.Add(argVal);
                 }
                 result.Add(Token(SyntaxKind.CommaToken));
             }
-            return result.Take(result.Count-1).ToArray();
+            return result.Take(result.Count - 1).ToArray();
         }
 
         private Fable.AST.Fable.Expr GetMethodBody(Declaration.MemberDeclaration declaration)
@@ -455,25 +452,25 @@ namespace fs2cs.Fable2CSharp
         {
             var result = new List<MemberDeclarationSyntax>();
 
-            foreach( var declaration in file.Declarations )
+            foreach (var declaration in file.Declarations)
             {
                 if (declaration.IsMemberDeclaration)
                 {
                     var memberDeclaration = (Declaration.MemberDeclaration)declaration;
                     if (IsField(memberDeclaration))
                     {
-                        bool isVoid;
+                        Boolean isVoid;
                         var fieldDeclaration = FieldDeclaration(VariableDeclaration(GetFieldType(memberDeclaration, out isVoid))
                             .WithVariables(SingletonSeparatedList<VariableDeclaratorSyntax>(VariableDeclarator(GetFieldName(memberDeclaration))
                             .WithInitializer(EqualsValueClause(GetFieldValue(memberDeclaration))))))
                             .WithModifiers(TokenList(new[] { Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword), Token(SyntaxKind.ReadOnlyKeyword) }));
-                        if ( isVoid ) { throw new ArgumentException("Field cannot be void"); }
+                        if (isVoid) { throw new ArgumentException("Field cannot be void"); }
                         result.Add(fieldDeclaration);
                     }
                     else if (IsMethod(memberDeclaration))
                     {
                         var parameters = GetMethodParameters(memberDeclaration);
-                        bool isVoid;
+                        Boolean isVoid;
                         var returnType = GetFieldType(memberDeclaration, out isVoid);
                         var methodName = GetMethodName(memberDeclaration);
                         var returnStatement = isVoid ? null : (ExpressionSyntax)TransformExpression(GetMethodBody(memberDeclaration));
@@ -487,12 +484,12 @@ namespace fs2cs.Fable2CSharp
                     }
                     else throw new NotImplementedException(memberDeclaration.ToString());
                 }
-                else if (declaration.IsActionDeclaration) 
+                else if (declaration.IsActionDeclaration)
                 {
                     var actionDeclaration = (Declaration.ActionDeclaration)declaration;
                     var expr = actionDeclaration.Item1;
                     var returnExpression = (ExpressionSyntax)TransformExpression(expr);
-                    bool isVoid;
+                    Boolean isVoid;
                     var returnType = Typ2Type(expr.Type, out isVoid);
                     var methodDeclaration =
                           MethodDeclaration(returnType, "Invoke")
@@ -508,13 +505,15 @@ namespace fs2cs.Fable2CSharp
             }
 
             return result.ToArray();
-               
+
         }
 
         public CompilationUnitSyntax Transform(File file, CompilationUnitSyntax compilationUnit, AdhocWorkspace workspace, OptionSet options)
         {
             return
+
                 compilationUnit
+                .WithUsings(SingletonList(UsingDirective(ParseName("System"))))
                 .WithMembers(SingletonList<MemberDeclarationSyntax>(GetClass(file)))
                 .NormalizeWhitespace()
             ;

@@ -11,3 +11,4 @@ NUnit
 NUnit.Runners
 Newtonsoft.Json
 Microsoft.Composition
+Microsoft.CSharp

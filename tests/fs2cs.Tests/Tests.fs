@@ -67,11 +67,9 @@ type SetupTest() =
             .CreateLogger()
         Log.Information "Logging started"
 
-[<Test>]
-let ``tests works`` () =
-  Directory.GetFiles( "../../", "test*.fsx" ) 
-  |> Seq.map ( fun p -> Path.GetFullPath(p) )
-  |> Seq.iter( fun source ->
+let runTest n =
+    let source = Path.GetFullPath("../../test" + n + ".fsx") 
+
     printfn "Testing %s ..." source
     let compiled =  Library.main [|"--projFile";source|]
     Assert.NotNull(compiled)
@@ -79,9 +77,68 @@ let ``tests works`` () =
     let a = compiled |> Seq.toArray
     Assert.AreEqual( 1, a.Length )
     let content = ( a.[0] |> snd ).ToString().Replace( "\r\n", "\n" )
+
     let csharp = File.ReadAllText( Path.ChangeExtension( source, ".cs" ) ).ToString().Replace( "\r\n", "\n" )
     Assert.AreEqual( csharp, content )  
-  )
+
+    let references = [|
+        typeof<System.Func<Object>>.Assembly.Location;
+        typeof<System.Runtime.CompilerServices.DynamicAttribute>.Assembly.Location
+        typeof<Microsoft.CSharp.RuntimeBinder.Binder>.Assembly.Location
+    |]
+
+    let compiler = 
+        new Microsoft.CSharp.CSharpCodeProvider(
+            dict [ ("CompilerVersion", "v4.0") ]
+        )
+
+    let compilerParams = 
+        new System.CodeDom.Compiler.CompilerParameters(references)
+    
+    let result = compiler.CompileAssemblyFromSource(compilerParams, content)
+    Assert.IsEmpty(result.Errors)
+
+[<Test>]
+let ``test 1`` () = runTest "1"
+
+[<Test>] 
+let ``test 2`` () = runTest "2"
+
+[<Test>] 
+let ``test 3`` () = runTest "3"
+
+[<Test>]
+let ``test 4`` () = runTest "4"
+
+[<Test>]
+let ``test 5`` () = runTest "5"
+
+[<Test>]
+let ``test 6`` () = runTest "6"
+
+[<Test>]
+let ``test 7`` () = runTest "7"
+
+[<Test>]
+let ``test 8`` () = runTest "8"
+
+[<Test>]
+let ``test 9`` () = runTest "9"
+
+[<Test>]
+let ``test 10`` () = runTest "10"
+
+[<Test>]
+let ``test 11`` () = runTest "11"
+
+[<Test>]
+let ``test 12`` () = runTest "12"
+
+[<Test>]
+let ``test 13`` () = runTest "13"
+
+[<Test>]
+let ``test 14`` () = runTest "14"
 
 [<Test>]
 [<Ignore>]
