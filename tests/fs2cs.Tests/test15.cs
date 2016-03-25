@@ -12,7 +12,7 @@ public class Test15 {
             var r1 = 0;
             return () => new Func<dynamic>(() =>
             {
-                var clo1 = fsFormat("x = %d, y = %d, x/3 = %d, x%%3 = %d\n")("x = %d, y = %d, x/3 = %d, x%%3 = %d\n",);
+                var clo1 = fsFormat("x = %d, y = %d, x/3 = %d, x%%3 = %d\n")("x = %d, y = %d, x/3 = %d, x%%3 = %d\n", log);
                 return (arg10) => new Func<dynamic>(() =>
                 {
                     var clo2 = clo1(arg10);
