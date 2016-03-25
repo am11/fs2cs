@@ -316,6 +316,10 @@ namespace fs2cs.Fable2CSharp
                     {
                         result.Add((LocalDeclarationStatementSyntax)transf);
                     }
+                    else if (transf is StatementSyntax)
+                    {
+                        result.Add((StatementSyntax)transf);
+                    }
                     else
                         throw new NotImplementedException(transf.ToString());
 
@@ -345,7 +349,26 @@ namespace fs2cs.Fable2CSharp
             }
             else if (expr.IsLoop)
             {
+                var loop = (Expr.Loop)expr;
+                var kind = loop.Item1;
+                if ( kind.IsFor )
+                {
+                    var loopFor = (LoopKind.For)kind;
+                    bool isVoid;
 
+                    var body = ExpressionStatement((ExpressionSyntax)TransformExpression(loopFor.body));
+                    var initializer = (ExpressionSyntax)TransformExpression(loopFor.start);
+                    var limit = (ExpressionSyntax)TransformExpression(loopFor.limit);
+
+                    return
+                        ForStatement(Block(SingletonList<StatementSyntax>( body )))
+                        .WithDeclaration(VariableDeclaration( Typ2Type(loopFor.ident.typ, out isVoid) )
+                        .WithVariables(SingletonSeparatedList<VariableDeclaratorSyntax>(VariableDeclarator(Identifier(loopFor.ident.name))
+                        .WithInitializer(EqualsValueClause(initializer)))))
+                        .WithCondition(BinaryExpression(SyntaxKind.LessThanExpression, IdentifierName(loopFor.ident.name), limit ))
+                        .WithIncrementors(SingletonSeparatedList<ExpressionSyntax>(PostfixUnaryExpression(SyntaxKind.PostIncrementExpression, IdentifierName(loopFor.ident.name))));
+                }
+                else throw new NotImplementedException(kind.ToString());
             }
             
             throw new NotImplementedException(expr.ToString());

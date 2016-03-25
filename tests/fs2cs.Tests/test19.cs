@@ -1,19 +1,31 @@
 ﻿using System;
 using static fs2csLib.Impl;
 
-public class Test18 {
-    public static readonly dynamic a = 5;
-    public static dynamic Invoke() {
-        return a > 6 ? new Func<dynamic>(() =>
+public class Test19 {
+    public static dynamic FunctionSample2() {
+        return new Func<dynamic>(() =>
         {
-            var b = 18;
-            return a > 50 ? b + 8 : b - 9;
-        }
+            var even = (n) => n % 2 == 0;
+            var tick = (x) => () => new Func<dynamic>(() =>
+            {
+                var clo1 = fsFormat("tick %d\n")("tick %d\n", log);
+                return (arg10) => clo1(arg10);
+            }
 
-        )() : new Func<dynamic>(() =>
-        {
-            var c = a * 2;
-            return c + 3;
+            )()(x);
+            var tock = (x) => () => new Func<dynamic>(() =>
+            {
+                var clo1 = fsFormat("tock %d\n")("tock %d\n", log);
+                return (arg10) => clo1(arg10);
+            }
+
+            )()(x);
+            var choose = (x) => f(x) ? g(x) : h(x);
+            var ticktock = choose(even, tick, tock);
+            for (dynamic i = 0; i < 10; i++)
+            {
+                ticktock(i);
+            }
         }
 
         )();
