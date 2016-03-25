@@ -299,13 +299,16 @@ namespace fs2cs.Fable2CSharp
                 var result = new List<StatementSyntax>();
                 var i = 0;
                 var lasti = sequential.Item1.Count() - 1;
+                TypeSyntax returnType = null; 
                 foreach (var expr1 in sequential.Item1)
                 {
+                    bool isVoid;
                     var transf = TransformExpression(expr1);
                     if (transf is ExpressionSyntax)
                     {
                         var expressionSyntax = (ExpressionSyntax)transf;
                         if (i == lasti) {
+                            returnType = Typ2Type(expr1.Type, out isVoid);
                             result.Add(ReturnStatement(expressionSyntax));
                         }
                         else {
@@ -326,7 +329,7 @@ namespace fs2cs.Fable2CSharp
                     i++;
                 }                
                 return InvocationExpression(ObjectCreationExpression(GenericName(Identifier("Func"))
-                    .WithTypeArgumentList(TypeArgumentList(SingletonSeparatedList<TypeSyntax>(IdentifierName("dynamic")))))
+                    .WithTypeArgumentList(TypeArgumentList(SingletonSeparatedList<TypeSyntax>(returnType == null ? IdentifierName("dynamic") : returnType))))
                     .WithArgumentList(ArgumentList(SingletonSeparatedList<ArgumentSyntax>(Argument(ParenthesizedLambdaExpression(Block(result)))))));
             }
             else if (expr.IsVarDeclaration)

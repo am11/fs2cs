@@ -6,14 +6,14 @@ public class Test19 {
         return new Func<dynamic>(() =>
         {
             Func<dynamic, dynamic> even = (n) => n % 2 == 0;
-            Func<dynamic, dynamic> tick = (x) => () => new Func<dynamic>(() =>
+            Func<dynamic, dynamic> tick = (x) => () => new Func<Func<dynamic, dynamic>>(() =>
             {
                 Func<dynamic, dynamic> clo1 = fsFormat("tick %d\n")("tick %d\n", log);
                 return (arg10) => clo1(arg10);
             }
 
             )()(x);
-            Func<dynamic, dynamic> tock = (x) => () => new Func<dynamic>(() =>
+            Func<dynamic, dynamic> tock = (x) => () => new Func<Func<dynamic, dynamic>>(() =>
             {
                 Func<dynamic, dynamic> clo1 = fsFormat("tock %d\n")("tock %d\n", log);
                 return (arg10) => clo1(arg10);
