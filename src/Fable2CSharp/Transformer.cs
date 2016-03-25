@@ -117,7 +117,16 @@ namespace fs2cs.Fable2CSharp
                 else if (kind.IsEmit)
                 {
                     var emit = (ValueKind.Emit)kind;
-                    return Block(SingletonList<StatementSyntax>(ExpressionStatement(IdentifierName(emit.Item))));
+
+                    var content = emit.Item;
+
+                    if (content== "x=>{console.log(x)}")
+                    {
+                        return
+                            IdentifierName("log");
+                    }                        
+                
+                    return Block(SingletonList<StatementSyntax>(ExpressionStatement(IdentifierName(content))));
                 }
                 else if (kind.IsLambda)
                 {
@@ -303,7 +312,9 @@ namespace fs2cs.Fable2CSharp
 
                     i++;
                 }                
-                return InvocationExpression(ObjectCreationExpression(GenericName(Identifier("Func")).WithTypeArgumentList(TypeArgumentList(SingletonSeparatedList<TypeSyntax>(IdentifierName("dynamic"))))).WithArgumentList(ArgumentList(SingletonSeparatedList<ArgumentSyntax>(Argument(ParenthesizedLambdaExpression(Block(result)))))));
+                return InvocationExpression(ObjectCreationExpression(GenericName(Identifier("Func"))
+                    .WithTypeArgumentList(TypeArgumentList(SingletonSeparatedList<TypeSyntax>(IdentifierName("dynamic")))))
+                    .WithArgumentList(ArgumentList(SingletonSeparatedList<ArgumentSyntax>(Argument(ParenthesizedLambdaExpression(Block(result)))))));
             }
             else if (expr.IsVarDeclaration)
             {
@@ -503,15 +514,8 @@ namespace fs2cs.Fable2CSharp
             foreach (var argument in arguments)
             {
                 var argVal = TransformExpression(argument);
-                if (argVal is ExpressionSyntax)
-                {
-                    var parameter = Argument((ExpressionSyntax)argVal);
-                    result.Add(parameter);
-                }
-                else
-                {
-                    //result.Add(argVal);
-                }
+                var parameter = Argument((ExpressionSyntax)argVal);
+                result.Add(parameter);
                 result.Add(Token(SyntaxKind.CommaToken));
             }
             return result.Take(result.Count - 1).ToArray();

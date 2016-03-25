@@ -22,5 +22,16 @@ namespace fs2csLib
         {
             return a.ToArray();
         }
+
+        public static void log( dynamic p ) { Console.WriteLine(p); }
+
+        public static void doFsFormat(string data, Action<dynamic> next)
+        {
+        }
+
+        public static Action<string, Action<dynamic>> fsFormat( string format )
+        {
+            return doFsFormat;
+        }
     }
 }
