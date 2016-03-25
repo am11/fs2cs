@@ -150,3 +150,6 @@ let ``Arrays`` () = runTest "17"
 
 [<Test>]
 let ``if`` () = runTest "18"
+
+[<Test>]
+let ``visualfsharp FunctionSample2`` () = runTest "19"

@@ -65,6 +65,8 @@
   -->
   <Import Project="..\..\.paket\paket.targets" />
   <ItemGroup>
+    <None Include="test19.cs" />
+    <None Include="test19.fsx" />
     <None Include="paket.references" />
     <Content Include="App.config" />
     <Compile Include="Tests.fs" />

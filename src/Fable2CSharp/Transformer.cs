@@ -135,23 +135,28 @@ namespace fs2cs.Fable2CSharp
                     if (lambda.body.IsApply)
                     {
                         var body = (Expr.Apply)lambda.body;
-                        if (body.args.Length > lambda.args.Length)
+                        List<Ident> ars = new List<Ident>();
+
+                        foreach (var ar in body.args)
                         {
-                            List<Ident> ars = new List<Ident>();
-                            foreach (var ar in body.args)
+                            if (ar.IsValue && ((Expr.Value)ar).value.IsIdentValue)
                             {
-                                if (((Expr.Value)ar).value.IsIdentValue)
-                                {
-                                    var argValue = ((Expr.Value)ar).value;
-                                    var argKind = (ValueKind.IdentValue)argValue;
-                                    ars.Add(argKind.Item);
-                                }
+                                var argValue = ((Expr.Value)ar).value;
+                                var argKind = (ValueKind.IdentValue)argValue;
+                                ars.Add(argKind.Item);
                             }
-                            return
-                                ParenthesizedLambdaExpression(lambdaBodyExpr)
-                                .WithParameterList(ParameterList(SeparatedList<ParameterSyntax>(
-                                    GetLambdaParameters(ars.ToArray()))));
+                            else {
+                                // ignore, nothing to add
+                            }
                         }
+                        foreach (var ar in lambda.args)
+                        {
+                            ars.Add(ar);
+                        }
+                        return
+                            ParenthesizedLambdaExpression(lambdaBodyExpr)
+                            .WithParameterList(ParameterList(SeparatedList<ParameterSyntax>(
+                                GetLambdaParameters(ars.Distinct().ToArray()))));
                     }
                     else if (lambda.body.IsValue)
                     {
@@ -218,6 +223,10 @@ namespace fs2cs.Fable2CSharp
                         else if (op.Item.IsBinaryLess)
                         {
                             return BinaryExpression(SyntaxKind.LessThanExpression, leftES, rightES);
+                        }
+                        else if (op.Item.IsBinaryModulus)
+                        {
+                            return BinaryExpression(SyntaxKind.ModuloExpression, leftES, rightES);
                         }
                         else
                         {
@@ -334,8 +343,12 @@ namespace fs2cs.Fable2CSharp
                     ConditionalExpression((ExpressionSyntax)TransformExpression(ifThenElse.guardExpr), (ExpressionSyntax)TransformExpression(ifThenElse.thenExpr), (ExpressionSyntax)TransformExpression(ifThenElse.elseExpr));
 
             }
+            else if (expr.IsLoop)
+            {
 
-                throw new NotImplementedException(expr.ToString());
+            }
+            
+            throw new NotImplementedException(expr.ToString());
         }
 
         private SyntaxNodeOrToken[] GetLambdaParameters(Ident[] idents)
