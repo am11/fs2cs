@@ -3,7 +3,12 @@ using static fs2csLib.Impl;
 
 public class Test16 {
     public static void Invoke() {
-        console.log(5);
-        return;
+        () => new Func<dynamic>(() =>
+        {
+            var clo1 = fsFormat("%A")("%A",);
+            return (arg10) => clo1(arg10);
+        }
+
+        )()(5);
     }
 }

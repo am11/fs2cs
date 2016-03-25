@@ -8,53 +8,43 @@ open Microsoft.FSharp.Compiler.SourceCodeServices
 open Newtonsoft.Json
 open FSharp.Reflection
 open Newtonsoft.Json.Serialization
-open System.IO
+open System.IO      
 
-type ErasedUnionConverter() =
-    inherit JsonConverter()
-    override x.CanConvert t =
-        t.Name = "FSharpOption`1" ||
-        FSharpType.IsUnion t &&
-            t.GetCustomAttributes true
-            |> Seq.exists (fun a -> (a.GetType ()).Name = "EraseAttribute")
-    override x.ReadJson(reader, t, v, serializer) =
-        failwith "Not implemented"
-    override x.WriteJson(writer, v, serializer) =
-        match FSharpValue.GetUnionFields (v, v.GetType()) with
-        | _, [|v|] -> serializer.Serialize(writer, v) 
-        | _ -> writer.WriteNull()  
-        
-type CustomResolver() =
-    inherit DefaultContractResolver()
-    override x.CreateProperty(member1, memberSerialization)  =
-      let property = base.CreateProperty(member1, memberSerialization)
-      let badPropNames = 
-        [| "FSharpDelegateSignature"; "QualifiedName"; "FullName"; "AbbreviatedType";
-           "GenericParameter"; "GetterMethod"; "EventAddMethod"; "EventRemoveMethod";
-           "EventDelegateType"; "EventIsStandard"; "SetterMethod"; "NamedEntity";
-           "TypeDefinition"
-        |]
-      if badPropNames |> Seq.exists( fun p -> p = property.PropertyName ) then 
-        property.ShouldSerialize <- ( fun _ -> false )
-      property
-      
+let checker = FSharpChecker.Create(keepAssemblyContents=true)
 
-let printCs fileName par =
-    let file = new StreamWriter(fileName+".cs")
-    file.WriteLine(par.ToString())
-    file.Close()
+let parse projFile =
+    let options =
+        match Path.GetExtension(projFile) with
+        | ".fsx" ->
+            let projCode = File.ReadAllText projFile
+            checker.GetProjectOptionsFromScript(projFile, projCode)
+            |> Async.RunSynchronously
+        | ".fsproj" ->
+            ProjectCracker.GetProjectOptionsFromProjectFile(Path.GetFullPath projFile)
+        | ext -> failwithf "Unexpected extension: %s" ext
+    options
+    |> checker.ParseAndCheckProject
+    |> Async.RunSynchronously
 
-let printJson fileName par =
-    let jsonSettings = 
-        JsonSerializerSettings(
-            Converters=[|ErasedUnionConverter()|],
-            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-            NullValueHandling = NullValueHandling.Ignore,
-            MissingMemberHandling = MissingMemberHandling.Ignore,
-            StringEscapeHandling=StringEscapeHandling.EscapeNonAscii)
-    jsonSettings.ContractResolver <- CustomResolver()
-    let result = JsonConvert.SerializeObject (par, jsonSettings)
-    File.WriteAllText(fileName+".json", result )
+let rec printDecls prefix (sw:StringWriter) decls  =
+    decls |> Seq.iteri (fun i decl ->
+        match decl with
+          | FSharpImplementationFileDeclaration.Entity (e, sub) ->
+              sw.WriteLine( sprintf "%s%i) ENTITY: %s" prefix i e.DisplayName)
+              printDecls (prefix + "\t") sw sub 
+          | FSharpImplementationFileDeclaration.MemberOrFunctionOrValue (meth, args, body) ->
+              if meth.IsCompilerGenerated |> not then
+                  sw.WriteLine(sprintf "%s%i) METHOD: %s" prefix i meth.DisplayName)
+                  // match body with
+                  // | NewDelegate(_, Lambda(arg1, Lambda(arg2, _))) ->
+                  //     printfn "arg1 = arg2 %A" (arg1.IsCompilerGenerated)
+                  // | _ -> ()
+                  sw.WriteLine(sprintf "%A" body)
+          | FSharpImplementationFileDeclaration.InitAction (expr) ->
+              sw.WriteLine(sprintf "%s%i) ACTION" prefix i)
+              sw.WriteLine(sprintf "%A" expr)
+        )
+
 
 [<SetUpFixture>]
 type SetupTest() =
@@ -71,6 +61,15 @@ let runTest n =
     let source = Path.GetFullPath("../../test" + n + ".fsx") 
 
     printfn "Testing %s ..." source
+
+    let sw = new StringWriter()
+    let proj = parse source
+    proj.AssemblyContents.ImplementationFiles
+    |> Seq.iteri (fun i file -> printfn "%i) %s" i file.FileName)
+    proj.AssemblyContents.ImplementationFiles.[0].Declarations
+    |> printDecls "" sw
+
+    File.WriteAllText( Path.ChangeExtension( source, ".ast"),  sw.ToString() )
     let compiled =  Library.main [|"--projFile";source|]
     Assert.NotNull(compiled)
     Assert.IsNotEmpty(compiled)

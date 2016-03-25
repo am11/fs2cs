@@ -193,3 +193,5 @@ node_modules
 
 # test generated cs files
 *.cs1
+# ast viewer files
+*.ast

@@ -571,11 +571,14 @@ namespace fs2cs.Fable2CSharp
                           MethodDeclaration(returnType, "Invoke")
                           .WithModifiers(TokenList(new[] { Token(SyntaxKind.PublicKeyword), Token(SyntaxKind.StaticKeyword) }))
                           .WithBody(Block(
-                              returnExpression == null ?
-                              (StatementSyntax)statement :
-                              ReturnStatement(
-                                  isVoid ? null : returnExpression
+                              isVoid? 
+                              (
+                              ( returnExpression is LiteralExpressionSyntax ) ?
+                              (StatementSyntax)(ReturnStatement()) : 
+                              (StatementSyntax)(ExpressionStatement(returnExpression))
                               )
+                              :
+                              (StatementSyntax)(ReturnStatement(returnExpression))
                           ));
                     result.Add(methodDeclaration);
                 }
