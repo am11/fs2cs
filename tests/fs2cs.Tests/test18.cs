@@ -6,13 +6,13 @@ public class Test18 {
     public static dynamic Invoke() {
         return a > 6 ? new Func<dynamic>(() =>
         {
-            var b = 18;
+            dynamic b = 18;
             return a > 50 ? b + 8 : b - 9;
         }
 
         )() : new Func<dynamic>(() =>
         {
-            var c = a * 2;
+            dynamic c = a * 2;
             return c + 3;
         }
 

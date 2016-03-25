@@ -332,8 +332,9 @@ namespace fs2cs.Fable2CSharp
             else if (expr.IsVarDeclaration)
             {
                 var varDeclaration = (Expr.VarDeclaration)expr;
+                bool isVoid;
                 return
-                    LocalDeclarationStatement(VariableDeclaration(IdentifierName("var"))
+                    LocalDeclarationStatement(VariableDeclaration( Typ2Type(varDeclaration.var.typ, out isVoid) )
                     .WithVariables(SingletonSeparatedList<VariableDeclaratorSyntax>(
                         VariableDeclarator(Identifier(varDeclaration.var.name))
                         .WithInitializer(EqualsValueClause((ExpressionSyntax)TransformExpression(varDeclaration.value))))));

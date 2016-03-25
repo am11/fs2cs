@@ -5,7 +5,7 @@ public class Test16 {
     public static void Invoke() {
         () => new Func<dynamic>(() =>
         {
-            var clo1 = fsFormat("%A")("%A", log);
+            Func<dynamic, dynamic> clo1 = fsFormat("%A")("%A", log);
             return (arg10) => clo1(arg10);
         }
 
