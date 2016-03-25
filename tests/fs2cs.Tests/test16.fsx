@@ -1,1 +1,1 @@
-﻿printf "5"
+﻿printf "%A" 5
